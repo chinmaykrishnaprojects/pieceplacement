@@ -15,7 +15,6 @@ class StockfishEngine {
 
         this.initPromise = new Promise(async (resolve, reject) => {
             try {
-                // Check backend health
                 const response = await fetch(`${BACKEND_URL}/health`);
                 const data = await response.json();
 
@@ -55,9 +54,9 @@ class StockfishEngine {
             const data = await response.json();
 
             return {
-                centipawns: data.centipawns,
-                mate: data.mate,
-                depth: data.depth,
+                centipawns: data.centipawns || 0,
+                mate: data.mate || null,
+                depth: data.depth || depth,
                 isLoading: false,
             };
         } catch (error) {
@@ -71,7 +70,6 @@ class StockfishEngine {
         depth: number = 18,
         onProgress: EvalCallback
     ): Promise<PositionEvaluation> {
-        // Send initial loading state
         onProgress({
             centipawns: 0,
             mate: null,
@@ -79,17 +77,13 @@ class StockfishEngine {
             isLoading: true,
         });
 
-        // Get the final evaluation from the backend
         const result = await this.evaluate(fen, depth);
-
-        // Send final result
         onProgress(result);
-
         return result;
     }
 
     stop(): void {
-        // No-op for HTTP backend - requests complete on their own
+        // HTTP backend requests complete on their own
     }
 
     destroy(): void {
@@ -98,7 +92,6 @@ class StockfishEngine {
     }
 }
 
-// Singleton instance
 let engineInstance: StockfishEngine | null = null;
 
 export function getStockfishEngine(): StockfishEngine {

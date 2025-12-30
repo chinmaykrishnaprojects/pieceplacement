@@ -34,44 +34,27 @@ export function ChessBoard({
         return onMove(sourceSquare, targetSquare, isPromotion ? 'q' : undefined);
     };
 
-    // Custom square styles for highlighting last move
+    // Custom square styles
     const customSquareStyles = useMemo(() => {
         const styles: Record<string, React.CSSProperties> = {};
-
-        // Add subtle highlight for interactivity
-        if (!isLocked && selectedSide) {
-            // Could add drag preview styles here
-        }
-
         return styles;
-    }, [isLocked, selectedSide]);
+    }, []);
 
-    // Drag piece validation
-    const isDraggablePiece = ({ piece }: { piece: string }): boolean => {
-        return canDragPiece(piece);
-    };
+    // react-chessboard v5 options
+    const boardOptions = useMemo(() => ({
+        position: fen,
+        boardOrientation: boardOrientation as 'white' | 'black',
+        onPieceDrop: handleDrop,
+        canDragPiece: (args: { piece: string }) => canDragPiece(args.piece),
+        animationDuration: 0,
+        customDarkSquareStyle: { backgroundColor: '#779952' },
+        customLightSquareStyle: { backgroundColor: '#edeed1' },
+        customSquareStyles,
+    }), [fen, boardOrientation, isLocked, selectedSide, canDragPiece, customSquareStyles]);
 
     return (
         <div className="chessboard-container">
-            <Chessboard
-                position={fen}
-                onPieceDrop={handleDrop}
-                isDraggablePiece={isDraggablePiece}
-                boardOrientation={boardOrientation}
-                customSquareStyles={customSquareStyles}
-                animationDuration={200}
-                boardWidth={560}
-                customBoardStyle={{
-                    borderRadius: '8px',
-                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
-                }}
-                customDarkSquareStyle={{
-                    backgroundColor: '#779952',
-                }}
-                customLightSquareStyle={{
-                    backgroundColor: '#edeed1',
-                }}
-            />
+            <Chessboard options={boardOptions} />
 
             {/* Move History Display */}
             {moveHistory.length > 0 && (
