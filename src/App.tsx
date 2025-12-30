@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { ChessBoard } from './components/ChessBoard';
+import ChessBoard from './components/ChessBoard';
 import { GameControls } from './components/GameControls';
 import { EvaluationBar } from './components/EvaluationBar';
 import { AnalysisPanel } from './components/AnalysisPanel';
@@ -34,8 +34,8 @@ function App() {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Handle piece movement
-  const handleMove = useCallback((from: string, to: string, promotion?: string): boolean => {
+  // Handle piece movement - now returns Promise<boolean>
+  const handleMove = useCallback(async (from: string, to: string, promotion?: string): Promise<boolean> => {
     const result = makeMove(from, to, promotion);
     return result.success;
   }, [makeMove]);
@@ -142,10 +142,10 @@ function App() {
           <ChessBoard
             fen={gameState.fen}
             onMove={handleMove}
-            canDragPiece={canDragPiece}
-            isLocked={gameState.isLocked}
-            selectedSide={gameState.selectedSide}
-            moveHistory={gameState.moveHistory}
+            isFlipped={gameState.selectedSide === 'black'}
+            playerColor={gameState.selectedSide || 'white'}
+            disabled={gameState.isLocked || !gameState.selectedSide}
+            allowBothSides={true}
           />
 
           <FenDisplay

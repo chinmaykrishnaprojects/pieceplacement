@@ -1,0 +1,162 @@
+﻿/* Lichess-inspired chess board - matching pygame theme */
+
+.chess-board-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 560px;
+}
+
+.chess-board {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+    aspect-ratio: 1;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow:
+        0 0 0 3px #27272a,
+        0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+.square {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+    transition: filter 0.15s;
+}
+
+/* Lichess exact colors */
+.square.light {
+    background-color: #f0d9b5;
+    /* Lichess light square */
+}
+
+.square.dark {
+    background-color: #b58863;
+    /* Lichess dark square */
+}
+
+.square:hover {
+    filter: brightness(1.05);
+}
+
+.square.selected {
+    background-color: #829769 !important;
+}
+
+.square.last-move.light {
+    background-color: #cdd26a;
+    /* Lichess last move light */
+}
+
+.square.last-move.dark {
+    background-color: #aaa23a;
+    /* Lichess last move dark */
+}
+
+/* Coordinates */
+.coord {
+    position: absolute;
+    font-size: 11px;
+    font-weight: 600;
+    pointer-events: none;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.coord.rank {
+    top: 3px;
+    left: 4px;
+}
+
+.coord.file {
+    bottom: 2px;
+    right: 4px;
+}
+
+.square.light .coord {
+    color: #b58863;
+}
+
+.square.dark .coord {
+    color: #f0d9b5;
+}
+
+/* Piece styling */
+.piece {
+    width: 85%;
+    height: 85%;
+    pointer-events: none;
+    filter: drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.25));
+}
+
+.piece svg {
+    width: 100%;
+    height: 100%;
+}
+
+/* Legal move indicators - Lichess style dots */
+.legal-move-marker {
+    position: absolute;
+    width: 32%;
+    height: 32%;
+    background-color: rgba(0, 0, 0, 0.12);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.legal-move-marker.capture {
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    border-radius: 0;
+    border: 8px solid rgba(0, 0, 0, 0.12);
+    box-sizing: border-box;
+}
+
+/* Promotion modal */
+.promotion-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    border-radius: 4px;
+}
+
+.promotion-modal {
+    display: flex;
+    gap: 8px;
+    background-color: #312e2b;
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+.promotion-piece {
+    width: 64px;
+    height: 64px;
+    background-color: #524d47;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 8px;
+    transition: background-color 0.15s, transform 0.1s;
+}
+
+.promotion-piece:hover {
+    background-color: #6b6561;
+    transform: scale(1.05);
+}
+
+.promotion-piece svg {
+    width: 100%;
+    height: 100%;
+}

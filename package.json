@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@chrisoakman/chessboard2": "^0.5.0",
     "chess.js": "^1.4.0",
     "lila-stockfish-web": "^0.0.11",
     "react": "^19.2.0",
