@@ -61,29 +61,16 @@ export function useChessGame() {
             return { success: false, newFen: gameState.fen, move: '', error: 'Please select a side first' };
         }
 
-        // Check if it's the correct side's turn (we allow only the selected side to move)
-        const turn = chess.turn();
-        const isWhiteTurn = turn === 'w';
-        const isCorrectSide = (gameState.selectedSide === 'white' && isWhiteTurn) ||
-            (gameState.selectedSide === 'black' && !isWhiteTurn);
-
-        if (!isCorrectSide) {
-            // Skip opponent's turn - just make the player's move anyway
-            // For this training mode, we allow consecutive moves for one side
-        }
-
         try {
-            // For three-move mode, we need to manipulate the turn
-            // We'll temporarily modify the position to allow the selected side to move
+            // For three-move mode: force the turn to the player's side before making move
             const currentFen = chess.fen();
             const fenParts = currentFen.split(' ');
             const desiredTurn = gameState.selectedSide === 'white' ? 'w' : 'b';
 
-            if (fenParts[1] !== desiredTurn) {
-                fenParts[1] = desiredTurn;
-                const modifiedFen = fenParts.join(' ');
-                chess.load(modifiedFen);
-            }
+            // Always set turn to player's side
+            fenParts[1] = desiredTurn;
+            const modifiedFen = fenParts.join(' ');
+            chess.load(modifiedFen);
 
             const move = chess.move({ from, to, promotion: promotion || 'q' });
 
@@ -93,7 +80,13 @@ export function useChessGame() {
                 return { success: false, newFen: gameState.fen, move: '', error: 'Invalid move' };
             }
 
-            const newFen = chess.fen();
+            // After move, force turn back to player's side for next move
+            let newFen = chess.fen();
+            const newFenParts = newFen.split(' ');
+            newFenParts[1] = desiredTurn; // Keep it player's turn
+            newFen = newFenParts.join(' ');
+            chess.load(newFen);
+
             const newMovesRemaining = gameState.movesRemaining - 1;
             const isComplete = newMovesRemaining === 0;
 

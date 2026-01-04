@@ -4,10 +4,11 @@ import { GameControls } from './components/GameControls';
 import { EvaluationBar } from './components/EvaluationBar';
 import { AnalysisPanel } from './components/AnalysisPanel';
 import { FenDisplay } from './components/FenDisplay';
+import { GameDetailsPanel } from './components/GameDetailsPanel';
 import { useChessGame } from './chess/useChessGame';
 import { useStockfish } from './engine/useStockfish';
 import { getRandomMiddlegamePosition } from './services/lichessService';
-import type { AnalysisResult, PositionEvaluation } from './chess/types';
+import type { AnalysisResult, PositionEvaluation, LichessPosition } from './chess/types';
 import './App.css';
 
 function App() {
@@ -33,6 +34,8 @@ function App() {
   const [currentEval, setCurrentEval] = useState<PositionEvaluation | null>(null);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [currentPosition, setCurrentPosition] = useState<LichessPosition | null>(null);
+  const [isGameDetailsRevealed, setIsGameDetailsRevealed] = useState(false);
 
   // Handle piece movement - now returns Promise<boolean>
   const handleMove = useCallback(async (from: string, to: string, promotion?: string): Promise<boolean> => {
@@ -47,10 +50,12 @@ function App() {
     setAnalysisResult(null);
     setInitialEval(null);
     setCurrentEval(null);
+    setIsGameDetailsRevealed(false); // Hide details for new position
 
     try {
       const position = await getRandomMiddlegamePosition();
       loadPosition(position.fen);
+      setCurrentPosition(position); // Store the position with its metadata
 
       // Evaluate the initial position
       if (isEngineReady) {
@@ -190,6 +195,15 @@ function App() {
         isVisible={gameState.gamePhase === 'analyzing' || gameState.gamePhase === 'complete'}
         selectedSide={gameState.selectedSide}
       />
+
+      {/* Game Details Panel - Shows after analysis */}
+      {currentPosition && (
+        <GameDetailsPanel
+          position={currentPosition}
+          isRevealed={isGameDetailsRevealed || gameState.gamePhase === 'analyzing' || gameState.gamePhase === 'complete'}
+          onToggleReveal={() => setIsGameDetailsRevealed(!isGameDetailsRevealed)}
+        />
+      )}
 
       <footer className="app-footer">
         <p>Focus on <strong>piece placement</strong>, <strong>coordination</strong>, and <strong>positional understanding</strong></p>

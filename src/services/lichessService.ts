@@ -24,8 +24,8 @@ function isValidMiddlegamePosition(fen: string): boolean {
 
 // Fetch games from Lichess Masters Explorer API
 async function fetchLichessGames(): Promise<any[]> {
-    // Use a random opening move to get different games each time
-    const openingMoves = ['e4', 'd4', 'c4', 'Nf3', 'e4,e5', 'd4,d5', 'e4,c5'];
+    // Use a random opening move in UCI format (e.g., e2e4 not e4)
+    const openingMoves = ['e2e4', 'd2d4', 'c2c4', 'g1f3', 'e2e4,e7e5', 'd2d4,d7d5', 'e2e4,c7c5'];
     const randomOpening = openingMoves[Math.floor(Math.random() * openingMoves.length)];
 
     const params = new URLSearchParams({
@@ -64,6 +64,14 @@ function findMiddlegamePosition(game: any): LichessPosition | null {
 
         const validPositions: LichessPosition[] = [];
 
+        // Extract game details from Masters API response
+        const gameDetails = {
+            white: game.white?.name || 'Unknown',
+            black: game.black?.name || 'Unknown',
+            event: game.month ? `Masters ${game.month}` : 'Masters Game',
+            year: game.year || (game.month ? parseInt(game.month.split('-')[0]) : 2000),
+        };
+
         for (let i = 0; i < moves.length && i < 80; i++) {
             try {
                 const move = moves[i];
@@ -82,6 +90,7 @@ function findMiddlegamePosition(game: any): LichessPosition | null {
                             pieceCount: countPieces(fen),
                             moveNumber: Math.floor(i / 2) + 1,
                             gameUrl: game.id ? `https://lichess.org/${game.id}` : undefined,
+                            gameDetails,
                         });
                     }
                 }
@@ -106,6 +115,7 @@ const FAMOUS_MIDDLEGAMES: LichessPosition[] = [
         pieceCount: 28,
         moveNumber: 9,
         gameUrl: 'https://lichess.org/study/carlsen-caruana-2018',
+        gameDetails: { white: 'Magnus Carlsen', black: 'Fabiano Caruana', event: 'World Championship', year: 2018 },
     },
     // Kasparov vs Topalov, Wijk aan Zee 1999
     {
@@ -113,6 +123,7 @@ const FAMOUS_MIDDLEGAMES: LichessPosition[] = [
         pieceCount: 28,
         moveNumber: 12,
         gameUrl: 'https://lichess.org/KYZPDB2y',
+        gameDetails: { white: 'Garry Kasparov', black: 'Veselin Topalov', event: 'Wijk aan Zee', year: 1999 },
     },
     // Fischer vs Spassky, 1972 World Championship
     {
@@ -120,6 +131,7 @@ const FAMOUS_MIDDLEGAMES: LichessPosition[] = [
         pieceCount: 30,
         moveNumber: 8,
         gameUrl: undefined,
+        gameDetails: { white: 'Bobby Fischer', black: 'Boris Spassky', event: 'World Championship', year: 1972 },
     },
     // Sicilian Najdorf middlegame
     {
@@ -127,6 +139,7 @@ const FAMOUS_MIDDLEGAMES: LichessPosition[] = [
         pieceCount: 28,
         moveNumber: 10,
         gameUrl: undefined,
+        gameDetails: { white: 'Unknown', black: 'Unknown', event: 'Sicilian Najdorf', year: 2000 },
     },
     // Catalan middlegame
     {
@@ -134,6 +147,7 @@ const FAMOUS_MIDDLEGAMES: LichessPosition[] = [
         pieceCount: 30,
         moveNumber: 8,
         gameUrl: undefined,
+        gameDetails: { white: 'Unknown', black: 'Unknown', event: 'Catalan Opening', year: 2000 },
     },
     // King's Indian Defense
     {
@@ -141,6 +155,7 @@ const FAMOUS_MIDDLEGAMES: LichessPosition[] = [
         pieceCount: 30,
         moveNumber: 8,
         gameUrl: undefined,
+        gameDetails: { white: 'Unknown', black: 'Unknown', event: "King's Indian Defense", year: 2000 },
     },
     // Ruy Lopez middlegame
     {
@@ -148,6 +163,7 @@ const FAMOUS_MIDDLEGAMES: LichessPosition[] = [
         pieceCount: 32,
         moveNumber: 6,
         gameUrl: undefined,
+        gameDetails: { white: 'Unknown', black: 'Unknown', event: 'Ruy Lopez', year: 2000 },
     },
     // Queen's Gambit Declined
     {
@@ -155,6 +171,7 @@ const FAMOUS_MIDDLEGAMES: LichessPosition[] = [
         pieceCount: 30,
         moveNumber: 7,
         gameUrl: undefined,
+        gameDetails: { white: 'Unknown', black: 'Unknown', event: "Queen's Gambit Declined", year: 2000 },
     },
     // English Opening
     {
@@ -162,6 +179,7 @@ const FAMOUS_MIDDLEGAMES: LichessPosition[] = [
         pieceCount: 30,
         moveNumber: 7,
         gameUrl: undefined,
+        gameDetails: { white: 'Unknown', black: 'Unknown', event: 'English Opening', year: 2000 },
     },
     // Complex GM position (Ding Liren style)
     {
@@ -169,6 +187,7 @@ const FAMOUS_MIDDLEGAMES: LichessPosition[] = [
         pieceCount: 28,
         moveNumber: 11,
         gameUrl: undefined,
+        gameDetails: { white: 'Ding Liren', black: 'Ian Nepomniachtchi', event: 'World Championship', year: 2023 },
     },
 ];
 

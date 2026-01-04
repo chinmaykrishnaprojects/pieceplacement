@@ -33,7 +33,7 @@ class StockfishEngine {
         return this.initPromise;
     }
 
-    async evaluate(fen: string, depth: number = 18): Promise<PositionEvaluation> {
+    async evaluate(fen: string, depth: number = 12, tempoAdjusted: boolean = true): Promise<PositionEvaluation> {
         if (!this.isReady) {
             await this.init();
         }
@@ -44,7 +44,7 @@ class StockfishEngine {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ fen, depth }),
+                body: JSON.stringify({ fen, depth, tempoAdjusted }),
             });
 
             if (!response.ok) {
@@ -67,7 +67,7 @@ class StockfishEngine {
 
     async evaluateWithProgress(
         fen: string,
-        depth: number = 18,
+        depth: number = 12,
         onProgress: EvalCallback
     ): Promise<PositionEvaluation> {
         onProgress({

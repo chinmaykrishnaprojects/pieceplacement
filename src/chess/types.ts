@@ -31,9 +31,17 @@ export interface MoveResult {
   error?: string;
 }
 
+export interface GameDetails {
+  white: string;
+  black: string;
+  event: string;
+  year: number;
+}
+
 export interface LichessPosition {
   fen: string;
   pieceCount: number;
   moveNumber: number;
   gameUrl?: string;
+  gameDetails?: GameDetails;
 }
