@@ -1,0 +1,192 @@
+# Stockfish on the strength–cost–interpretability Pareto frontier
+
+An empirical study of where chess engines and chess LLMs sit on the trade-off
+surface between **playing strength (Elo)**, **compute cost per move**, and
+**interpretability to humans** — starting from Stockfish and measuring, rather
+than assuming, what interpretability costs.
+
+Everything here runs from scratch on a 4-core box: Stockfish 16 (NNUE),
+python-chess, and 12,000 lichess games that carry lichess's server analysis
+(Stockfish at depth ~18–22), extracted by streaming the January 2024 open
+database dump. **No files outside this folder are read or touched.**
+
+> Stockfish 16 is used rather than the latest release because this
+> environment's network policy blocks GitHub release downloads; SF16 is fully
+> NNUE-based, so all conclusions about the NNUE era apply.
+
+## Contents
+
+| File | What it does |
+|---|---|
+| `scripts/extract_lichess.py` | Streams the lichess dump, keeps games with `[%eval]`, writes a per-position dataset (material counts, depth-18 eval, result) |
+| `scripts/analyze_positions.py` | Eval→score curve, reverse-engineered piece values, difference-vs-ratio material models, trade-when-ahead tests |
+| `scripts/node_ladder.py` | Self-play ladder: SF16 at fixed node budgets (32→65,536) plus a material-only αβ engine; measures Elo per node |
+| `scripts/multipv_cost.py` | Measures the Elo price of interpretability: SF forced to resolve k candidate lines (MultiPV=k) vs normal SF at the same node budget |
+| `scripts/explain_move.py` | **Prototype interpretable Stockfish**: emits Gemini-prompt-style JSON (candidate lines in SAN, win-probability via the fitted curve, rule-based English rationale) at ~10 ms/move |
+| `scripts/make_charts.py` | Renders all charts in `results/` |
+| `data/positions.csv.gz` | 783k positions from 12k evaluated games (2024-01 dump) |
+| `results/` | Fitted parameters (JSON), match results (CSV), charts (PNG) |
+
+## Findings
+
+### 1. What an eval is actually worth (`chart_eval_score.png`)
+
+Fitting *actual game results* against lichess's depth-18 evals over 115k quiet
+positions (checks, captures and opening plies excluded; positions subsampled
+within games to reduce correlation):
+
+- Expected score ≈ σ(cp / **468**): +1.00 gives only a **55%** expected score
+  for these (mostly 1200–2200) players.
+- **The "+1.00 ⇒ 50% chance of winning" rule is strength-dependent.** For this
+  population, 50% win probability arrives at **+0.63**, not +1.00 — and the
+  curve sharpens with rating: k ≈ 577cp below 1600, 413cp at 1600–2000,
+  **332cp above 2000**. Stronger players convert the same eval more reliably;
+  Stockfish's own WDL normalization (+1.00 ↔ 50% win) is calibrated to
+  engine-level play, which continues this trend.
+
+### 2. Reverse-engineered piece values (`chart_piece_values.png`)
+
+Two independent regressions on the same positions:
+
+| Piece | Classical | SF depth-18 eval–implied | Outcome-implied |
+|---|---|---|---|
+| Pawn | 1 | 1.00 (= 135cp) | 1.00 |
+| Knight | 3 | 2.77 | 2.18 |
+| Bishop | 3 | 3.07 | 2.59 |
+| Rook | 5 | 4.21 | 3.69 |
+| Queen | 9 | 7.26 | 6.89 |
+
+- SF's NNUE at depth 18 prices a pawn at ~135cp of normalized eval and
+  compresses the heavy pieces relative to 1/3/3/5/9 (Q ≈ 7.3, R ≈ 4.2), while
+  confirming the bishop's edge over the knight (3.07 vs 2.77).
+- The *outcome*-implied values (what material actually converts to for
+  amateurs) are compressed further: an amateur's extra queen is worth ~6.9
+  pawns of win-probability, not 9. Big material is systematically harder to
+  convert than its eval suggests.
+
+### 3. Difference vs ratio, and "when ahead, trade" (`chart_conversion.png`)
+
+Log-loss of logistic models predicting decisive-game outcomes from material:
+
+| Model | Log-loss |
+|---|---|
+| material difference | 0.6327 |
+| log material ratio | 0.6294 |
+| **difference / √(total material)** | **0.6276** |
+
+The user-hypothesized ratio-flavored model beats the raw difference, and the
+best simple form is the difference *scaled up as material comes off*. The
+effect is big and monotone: **the same +2 to +4 edge converts at 62.6% with
+65–80 points of material on the board and 80.5% with ≤20 remaining** — folk
+wisdom ("when up, trade pieces") quantified at ~18 percentage points of
+expected score. Complementarily, a leader whose remaining material is
+pawn-heavy converts best (68% → 79% across pawn-share quartiles), the mirror
+image of "when down, trade pawns".
+
+Nuance: for predicting *SF's own eval*, the plain per-piece difference is the
+best material model (R² = 0.61 vs 0.47 for the ratio) — SF's eval is close to
+linear in material. The ratio/scaling structure lives in *conversion*, i.e.
+between eval and result. An interpretable "human" eval should therefore be
+two-stage: a linear material+positional score, then a conversion curve that
+sharpens as material comes off.
+
+### 4. Strength per node (`chart_ladder.png`, `results/ladder_elo.json`)
+
+Self-play ladder at fixed nodes/move (60 games per adjacent pair, balanced
+random openings, 1 thread). SF16 refuses to search fewer than ~32 nodes (it
+always completes a depth-2 iteration), so 32 is the floor — even "1-node"
+Stockfish is already a search engine. 65,536 nodes ≈ depth 17, conveniently
+close to the depth-18 evals used above. See `results/ladder_elo.json` for
+measured relative Elo; the chart anchors 65k nodes ≈ 3100 Elo (stated
+assumption, not a measurement).
+
+Measured curve (anchored): 32 nodes ≈ 1468, 64 ≈ 1520, 256 ≈ 1561,
+1024 ≈ 1927, 4096 ≈ 2439, 16 384 ≈ 2820, 65 536 ≡ 3100. The curve is far
+from log-linear: the first doublings above 32 nodes are nearly free
+(~+90 Elo total from 32 → 256), then the middle regime pays ~300–500 Elo
+per 4× (256 → 1024: +366; 1024 → 4096: +512). Intelligence-per-node is not
+constant — the eval alone (depth-2 SF) already plays ~1450-level chess, and
+search buys the rest.
+
+A material-only alpha-beta (depth 2 + capture quiescence — the maximally
+interpretable classical engine) lands at ≈ **1009** on the same scale via
+direct matches against the 32- and 64-node rungs: NNUE's opaque eval is
+worth ~460 Elo over transparent material counting at equal (tiny) search.
+
+### 5. The measured price of interpretability (`results/multipv_results.csv`)
+
+The concrete "interpretable Stockfish" of this study: force the engine to
+resolve **k candidate lines** (MultiPV=k) from the same node budget and play
+the top one — exactly the information a human-readable move card needs. This
+is measured head-to-head vs normal SF at 16,384 nodes (40 games per k):
+
+| Candidate lines (MultiPV) | Score vs normal SF | Elo cost |
+|---|---|---|
+| 2 | 36.2% | **−98** |
+| 3 | 22.5% | **−215** |
+| 5 | 18.8% | **−254** |
+
+The measured ladder slope at this budget is ~+280 Elo per 4× nodes, so a
+full 3-line explanation is bought back with roughly **3× nodes** — i.e.
+**interpretability has a measurable, purchasable price in compute**, about
+1.5 doublings for k=3. (See `chart_multipv.png`.)
+
+`scripts/explain_move.py` packages this: give it a FEN or PGN and it returns
+the same JSON contract as the Gemini grandmaster prompt (candidate variations
+in SAN, expected score from the fitted curve of §1, a rule-based English
+rationale from legible features) — at ~10 ms of CPU (~$3×10⁻⁷) per move
+instead of cents, with *faithful* explanations (the numbers shown are the
+numbers that chose the move, unlike an LLM's post-hoc rationale).
+
+### 6. The frontier (`chart_pareto.png`, `results/pareto_points.json`)
+
+Measured points (this study) are joined by literature-estimate reference
+points — general LLMs (dubesor.de-style prompting, ~1400–1800), a 50M
+chess-GPT (Karvonen-style, ~1500, the user's app), Maia (human-move
+prediction, policy-only), Leela with and without search. Interpretability is
+scored 0–10 on an explicit rubric (native English rationale, legible
+intermediate quantities, mechanistic transparency, faithfulness) in the
+report. The shape that emerges:
+
+- **Cost spans ~8 orders of magnitude for ~2000 Elo of range.**
+- The interpretable end is occupied twice, in opposite corners: material-only
+  αβ (cheap, weak, fully transparent) and frontier LLMs (expensive, weak-ish,
+  fluent but unfaithful explanations).
+- Search engines dominate on strength-per-dollar; their interpretability
+  problem is *volume* (millions of legible nodes), not opacity per node —
+  which is why MultiPV-style summarization is cheap, while LLM opacity is
+  structural.
+
+## Reproducing
+
+```bash
+python3 -m venv venv && venv/bin/pip install chess zstandard numpy scipy pandas matplotlib scikit-learn
+venv/bin/python scripts/extract_lichess.py 12000 data/positions.csv.gz
+venv/bin/python scripts/analyze_positions.py
+venv/bin/python scripts/node_ladder.py 60 results/ladder_results.csv
+venv/bin/python scripts/multipv_cost.py 40 results/multipv_results.csv
+venv/bin/python scripts/make_charts.py
+venv/bin/python scripts/explain_move.py "<FEN>" 16384
+```
+
+## Relation to fishtest
+
+Stockfish improvements are accepted via [fishtest](https://tests.stockfishchess.org)
+SPRT: a patch must prove a non-negative Elo effect over tens of thousands of
+games at two time controls. The framing here is deliberately different:
+fishtest optimizes a *single point* (max Elo at fixed cost); this study maps
+the *frontier*, so that an interpretability patch can be judged as "−x Elo
+for +y explanation quality at −z nodes" rather than rejected outright. The
+MultiPV experiment is exactly a fishtest-shaped question ("what is the Elo
+cost of always resolving 3 lines?") answered at small scale.
+
+## Honest limitations
+
+- 60 games per ladder rung ⇒ ±~45 Elo (1σ) per edge; chained edges accumulate error.
+- Absolute Elo anchoring is an assumption (relative curve is measured).
+- Lichess evals are SF depth ~18–22 *of the era of the game*; treated as one oracle.
+- Outcome-implied piece values inherit lichess players' conversion skill; they
+  are "value of material *to a ~1800 human*", which is the point, but not a
+  universal constant.
+- Reference points for LLM/Maia/Leela strength and cost are literature
+  estimates, marked as such.

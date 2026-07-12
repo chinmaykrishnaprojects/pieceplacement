@@ -1,0 +1,87 @@
+[
+  {
+    "name": "material-only \u03b1\u03b2",
+    "elo": 1009.0857004632894,
+    "cost": 3e-07,
+    "interp": 9,
+    "color": "#e34948"
+  },
+  {
+    "name": "SF16 @ 32 nodes",
+    "elo": 1467.806244861639,
+    "cost": 1e-09,
+    "interp": 5,
+    "color": "#2a78d6",
+    "dy": -22
+  },
+  {
+    "name": "SF16 @ 1k nodes",
+    "elo": 1927.213554108731,
+    "cost": 1.0240000000000001e-08,
+    "interp": 4,
+    "color": "#2a78d6"
+  },
+  {
+    "name": "SF16 @ 65k nodes",
+    "elo": 3100.0,
+    "cost": 6.553600000000001e-07,
+    "interp": 4,
+    "color": "#2a78d6"
+  },
+  {
+    "name": "SF16 full (~1s)",
+    "elo": 3500,
+    "cost": 1.4e-05,
+    "interp": 4,
+    "color": "#2a78d6",
+    "dy": -24
+  },
+  {
+    "name": "SF16 @ 65k, 3-line explain",
+    "elo": 2885.0,
+    "cost": 6.553600000000001e-07,
+    "interp": 6,
+    "color": "#008300",
+    "dx": -62,
+    "dy": -30
+  },
+  {
+    "name": "Maia-1900 (policy)",
+    "elo": 1900,
+    "cost": 1e-06,
+    "interp": 3,
+    "color": "#4a3aa7",
+    "dx": -14
+  },
+  {
+    "name": "Chess-GPT 50M (your app)",
+    "elo": 1500,
+    "cost": 5e-07,
+    "interp": 4,
+    "color": "#1baf7a",
+    "dx": 18,
+    "dy": 14
+  },
+  {
+    "name": "Leela policy-only",
+    "elo": 2500,
+    "cost": 2e-05,
+    "interp": 3,
+    "color": "#eda100"
+  },
+  {
+    "name": "Leela + MCTS",
+    "elo": 3400,
+    "cost": 0.002,
+    "interp": 5,
+    "color": "#eda100",
+    "dy": -24
+  },
+  {
+    "name": "frontier LLM (Gemini-class)",
+    "elo": 1650,
+    "cost": 0.02,
+    "interp": 9,
+    "color": "#eb6834"
+  }
+]
