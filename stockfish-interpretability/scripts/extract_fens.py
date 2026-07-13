@@ -28,7 +28,8 @@ def main():
     kept = rows = 0
     with gzip.open(OUT, "wt", newline="") as fh:
         w = csv.writer(fh)
-        w.writerow(["game_id", "mover_elo", "ply", "fen", "human_move", "eval_cp"])
+        w.writerow(["game_id", "mover_elo", "ply", "fen", "human_move", "eval_cp",
+                    "pgn_prefix"])
         while kept < TARGET:
             game = chess.pgn.read_game(text)
             if game is None:
@@ -40,9 +41,11 @@ def main():
             gid = h.get("Site", "").rsplit("/", 1)[-1]
             board = game.board()
             node, quiet_idx, any_row = game, 0, False
+            pgn = ";"  # Karvonen-format running prefix ";1.e4 e5 2.Nf3 ..."
             while node.variations:
                 nxt = node.variation(0)
                 move = nxt.move
+                san = board.san(move)
                 # decide on the PRE-move position (board), like a player would
                 if (board.ply() >= 12 and not board.is_check()
                         and not board.is_capture(move)  # human chose a quiet move
@@ -53,10 +56,15 @@ def main():
                         cp = 2000 if ev.is_mate() and ev.mate() > 0 else \
                              -2000 if ev.is_mate() else max(-2000, min(2000, ev.score()))
                         w.writerow([gid, elo, board.ply(), board.fen(),
-                                    move.uci(), cp])
+                                    move.uci(), cp, pgn])
                         rows += 1
                         any_row = True
                     quiet_idx += 1
+                # advance the Karvonen prefix
+                if board.turn == chess.WHITE:
+                    pgn += f"{board.fullmove_number}.{san} "
+                else:
+                    pgn += f"{san} "
                 board.push(move)
                 node = nxt
             if any_row:

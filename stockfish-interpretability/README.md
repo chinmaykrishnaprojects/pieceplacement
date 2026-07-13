@@ -349,3 +349,54 @@ trained on human games (Maia, chess-LLM), not a de-tuned engine. Stockfish buys
 strength by becoming less human; the interpretability tools in Parts 2–3 are
 therefore about explaining engine choices in human terms, not about making the
 engine choose human moves — two different goals this data cleanly separates.
+
+## Part 5: running the real models — Maia3 and the chess-GPT weights (no black boxes)
+
+Earlier frontier points for Maia and the chess-LLM were literature estimates.
+Parts 5 replaces them with the **actual model weights run on this server**.
+
+### Maia3 (5M / 23M / 79M)
+
+Loaded from `bqrio/maia3-onnx` (ONNX, runs under onnxruntime — no lc0 build).
+Board tokenization (`[64,12]` piece-only, mirrored when Black to move) and the
+`from*64+to` move indexing were reconstructed from the CSSLab reference and
+verified: the start position reproduces the human opening book (e4 64%, d4 24%)
+and the value head returns sane W/D/L. See `scripts/maia3.py`.
+
+### The user's chess-GPT (the app's real weights, not the API)
+
+The Vercel app calls a Cloud Run backend; the underlying weights are
+`adamkarvonen/chess_llms` — a 16-layer nanoGPT (~50M params, `n_embd` 512,
+`block_size` 1023, **char-level vocab of 32**), one checkpoint trained on
+lichess human games and one on Stockfish self-play. We downloaded both, and
+`scripts/chessgpt_local.py` reimplements the nanoGPT forward pass + Karvonen's
+PGN char vocabulary and runs them **locally**. Verification: greedy decoding
+from `;1.` emits flawless legal PGN (`;1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.O-O Nf6
+5.d3`), and the move policy reproduces main-line human openings. The model needs
+its native PGN game history, so the lichess sample was re-extracted with a
+Karvonen-format prefix per position (`scripts/extract_fens.py`); all legal moves
+are scored in one padded forward pass.
+
+### Human-move agreement — all models, same lichess positions (`chart_humanmatch_compare.png`)
+
+| Model | Params | Trained on | Top-1 | Top-3 |
+|---|---|---|---|---|
+| chess-GPT (stockfish) | ~50M | SF self-play | 34.3% | 64.1% |
+| Stockfish @ 256 nodes (best SF) | — | — | 35.4% | 68.4% |
+| Maia3-5M | 5M | human (lichess) | 42.3% | 73.8% |
+| **chess-GPT (lichess)** | ~50M | human (lichess) | **42.5%** | **73.7%** |
+| Maia3-23M | 23M | human | 44.3% | 75.8% |
+| Maia3-79M | 79M | human | 44.7% | 76.6% |
+
+Two clean results:
+- **Every human-trained net beats every Stockfish setting** at predicting the
+  human move, and the gap is the whole point of these models.
+- **Training data, not architecture, decides human-likeness.** The user's chess-
+  GPT trained on lichess (42.5%) essentially ties Maia3-5M and lands 8 points
+  above the *same architecture* trained on Stockfish games (34.3%). A char-level
+  PGN transformer and a Maia "chessformer" converge to the same human-prediction
+  accuracy when trained on the same human data — so the humanness lives in the
+  data, and the ~50M PGN LLM is a legitimate Maia-class human model.
+- The lichess chess-GPT's agreement rises with player strength
+  (37% u1400 → 51% at 2200+), the same monotonic trend Maia and Stockfish show:
+  strong humans are more predictable to any good model.

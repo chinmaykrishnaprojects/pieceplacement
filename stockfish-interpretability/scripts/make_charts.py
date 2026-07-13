@@ -372,41 +372,36 @@ def chart_humanmatch_compare():
 
     # Maia3 sizes (playing Elo from ladder on x, human-match on y)
     mladder = _j.load(open("results/maia_ladder_elo.json"))
-    maia_pts = [("5M", C["violet"]), ("23M", C["blue"]), ("79M", C["aqua"])]
-    for name, col in maia_pts:
+    maia_pts = [("5M", C["violet"], (0, 13)), ("23M", C["blue"], (-2, 14)),
+                ("79M", C["aqua"], (2, 15))]
+    for name, col, off in maia_pts:
         x = mladder[name]["elo"]
         y = M[name]["top1"]
         ax.scatter([x], [y], color=col, s=120, zorder=5, edgecolor=SURFACE, lw=1.2)
-        ax.annotate(f"Maia3-{name}\n{y:.0%}", (x, y), xytext=(0, 12),
-                    textcoords="offset points", fontsize=8.5, ha="center", color=INK)
+        ax.annotate(f"Maia3-{name} {y:.0%}", (x, y), xytext=off,
+                    textcoords="offset points", fontsize=8, ha="center", color=INK)
 
-    # chess-LLM points (if measured)
-    if os.path.exists("results/chessllm_humanmatch.json") and \
-       os.path.exists("results/chessllm_ladder_elo.json"):
-        L = _j.load(open("results/chessllm_humanmatch.json"))
-        LE = _j.load(open("results/chessllm_ladder_elo.json"))
-        for name, col in [("lichess", C["orange"]), ("stockfish", C["red"])]:
-            if name in L and name in LE:
-                ax.scatter([LE[name]["elo"]], [L[name]["top1"]], color=col, s=120,
-                           marker="D", zorder=5, edgecolor=SURFACE, lw=1.2)
-                ax.annotate(f"chess-LLM\n({name}) {L[name]['top1']:.0%}",
-                            (LE[name]["elo"], L[name]["top1"]), xytext=(0, -26),
-                            textcoords="offset points", fontsize=8.5, ha="center", color=INK)
-    elif os.path.exists("results/chessllm_humanmatch.json"):
-        L = _j.load(open("results/chessllm_humanmatch.json"))
-        for name, col, xg in [("lichess", C["orange"], 1450), ("stockfish", C["red"], 1550)]:
-            if name in L:
-                ax.scatter([xg], [L[name]["top1"]], color=col, s=120, marker="D",
-                           zorder=5, edgecolor=SURFACE, lw=1.2)
-                ax.annotate(f"chess-LLM ({name})\n{L[name]['top1']:.0%}",
-                            (xg, L[name]["top1"]), xytext=(0, -26),
-                            textcoords="offset points", fontsize=8.5, ha="center", color=INK)
+    # user's chess-GPT (real local weights): human-match + measured ladder Elo
+    if os.path.exists("results/chessgpt_humanmatch.json"):
+        L = _j.load(open("results/chessgpt_humanmatch.json"))
+        LE = (_j.load(open("results/chessgpt_ladder_elo.json"))
+              if os.path.exists("results/chessgpt_ladder_elo.json") else None)
+        xg_default = {"lichess": 1350, "stockfish": 1450}
+        for name, col, dy in [("lichess", C["orange"], -30), ("stockfish", C["red"], 14)]:
+            if name not in L:
+                continue
+            x = LE[name]["elo"] if LE and name in LE else xg_default[name]
+            y = L[name]["top1"]
+            ax.scatter([x], [y], color=col, s=130, marker="D", zorder=6,
+                       edgecolor=SURFACE, lw=1.2)
+            ax.annotate(f"chess-GPT ({name}) {y:.0%}", (x, y), xytext=(0, dy),
+                        textcoords="offset points", fontsize=8, ha="center", color=INK)
 
-    ax.axhspan(0.46, 0.52, color=C["aqua"], alpha=0.08)
+    ax.axhspan(0.42, 0.47, color=C["aqua"], alpha=0.08)
     ax.set_xlabel("playing strength (Elo, measured vs Stockfish rungs)")
     ax.set_ylabel("top-1 agreement with the human move")
     ax.set_title("Human-move prediction: human-trained models beat Stockfish\n"
-                 "(all measured on the same 3,000 lichess positions)")
+                 "(Maia3 + the user's chess-GPT, real weights, same lichess positions)")
     ax.legend(frameon=False, loc="lower right", fontsize=9)
     ax.set_ylim(0.20, 0.55)
     fig.tight_layout(); fig.savefig("results/chart_humanmatch_compare.png"); plt.close(fig)
