@@ -215,19 +215,29 @@ def main():
     nps = 1.4e6
     def sf_cost(nodes): return max(nodes / nps * cpu, 1e-9)
     systems = [
-        dict(name="material-only αβ", elo=mat_abs, cost=3e-7, interp=9, color=C["red"]),
+        dict(name="material-only αβ", elo=mat_abs, cost=3e-7, interp=9, color=C["red"], dx=-30, dy=-20),
     ]
+    # real measured Elo for Maia3 + chess-GPT (this study)
+    import os
+    maia = json.load(open("results/maia_ladder_elo.json")) if os.path.exists("results/maia_ladder_elo.json") else {}
+    cgpt = json.load(open("results/chessgpt_ladder_elo.json")) if os.path.exists("results/chessgpt_ladder_elo.json") else {}
+    # a Maia/GPT net forward pass ~ few M FLOPs on CPU ≈ 1e-6 USD/move
+    nn_cost = 1e-6
     systems = [s for s in systems if s["elo"] is not None] + [
         dict(name="SF16 @ 32 nodes", elo=abs_elo["32"], cost=sf_cost(32), interp=5, color=C["blue"], dy=-22),
         dict(name="SF16 @ 1k nodes", elo=abs_elo["1024"], cost=sf_cost(1024), interp=4, color=C["blue"]),
         dict(name="SF16 @ 65k nodes", elo=abs_elo["65536"], cost=sf_cost(65536), interp=4, color=C["blue"]),
         dict(name="SF16 full (~1s)", elo=3500, cost=sf_cost(1.4e6), interp=4, color=C["blue"], dy=-24),
         dict(name="SF16 @ 65k, 3-line explain", elo=abs_elo["65536"] - 215, cost=sf_cost(65536), interp=6, color=C["green"], dx=-62, dy=-30),
-        dict(name="Maia-1900 (policy)", elo=1900, cost=1e-6, interp=3, color=C["violet"], dx=-14),
-        dict(name="Chess-GPT 50M (your app)", elo=1500, cost=5e-7, interp=4, color=C["aqua"], dx=18, dy=14),
-        dict(name="Leela policy-only", elo=2500, cost=2e-5, interp=3, color=C["yellow"]),
-        dict(name="Leela + MCTS", elo=3400, cost=2e-3, interp=5, color=C["yellow"], dy=-24),
-        dict(name="frontier LLM (Gemini-class)", elo=1650, cost=2e-2, interp=9, color=C["orange"]),
+        # MEASURED points from this study (real weights):
+        dict(name="Maia3-79M", elo=maia.get("79M", {}).get("elo", 1375), cost=nn_cost * 3, interp=3, color=C["violet"], dx=64, dy=-4),
+        dict(name="Maia3-5M", elo=maia.get("5M", {}).get("elo", 1308), cost=nn_cost, interp=3, color=C["violet"], dx=-40, dy=10),
+        dict(name="chess-GPT (lichess)", elo=cgpt.get("lichess", {}).get("elo", 1212), cost=nn_cost * 2, interp=4, color=C["aqua"], dx=48, dy=-16),
+        dict(name="chess-GPT (stockfish)", elo=cgpt.get("stockfish", {}).get("elo", 1407), cost=nn_cost * 2, interp=4, color=C["aqua"], dx=52, dy=10),
+        # literature estimates (labeled):
+        dict(name="Leela policy-only (est.)", elo=2500, cost=2e-5, interp=3, color=C["yellow"]),
+        dict(name="Leela + MCTS (est.)", elo=3400, cost=2e-3, interp=5, color=C["yellow"], dy=-24),
+        dict(name="frontier LLM Gemini-class (est.)", elo=1650, cost=2e-2, interp=9, color=C["orange"]),
     ]
     chart_pareto(systems)
     json.dump(systems, open("results/pareto_points.json", "w"), indent=2)
@@ -372,14 +382,15 @@ def chart_humanmatch_compare():
 
     # Maia3 sizes (playing Elo from ladder on x, human-match on y)
     mladder = _j.load(open("results/maia_ladder_elo.json"))
-    maia_pts = [("5M", C["violet"], (0, 13)), ("23M", C["blue"], (-2, 14)),
-                ("79M", C["aqua"], (2, 15))]
-    for name, col, off in maia_pts:
+    maia_pts = [("5M", C["violet"], (0, 13), "center"),
+                ("23M", C["blue"], (-46, 4), "right"),
+                ("79M", C["aqua"], (40, 6), "left")]
+    for name, col, off, ha in maia_pts:
         x = mladder[name]["elo"]
         y = M[name]["top1"]
         ax.scatter([x], [y], color=col, s=120, zorder=5, edgecolor=SURFACE, lw=1.2)
         ax.annotate(f"Maia3-{name} {y:.0%}", (x, y), xytext=off,
-                    textcoords="offset points", fontsize=8, ha="center", color=INK)
+                    textcoords="offset points", fontsize=8, ha=ha, color=INK)
 
     # user's chess-GPT (real local weights): human-match + measured ladder Elo
     if os.path.exists("results/chessgpt_humanmatch.json"):
@@ -387,15 +398,17 @@ def chart_humanmatch_compare():
         LE = (_j.load(open("results/chessgpt_ladder_elo.json"))
               if os.path.exists("results/chessgpt_ladder_elo.json") else None)
         xg_default = {"lichess": 1350, "stockfish": 1450}
-        for name, col, dy in [("lichess", C["orange"], -30), ("stockfish", C["red"], 14)]:
+        lab_off = {"lichess": (-8, -30, "center"), "stockfish": (0, 16, "center")}
+        for name, col in [("lichess", C["orange"]), ("stockfish", C["red"])]:
             if name not in L:
                 continue
             x = LE[name]["elo"] if LE and name in LE else xg_default[name]
             y = L[name]["top1"]
             ax.scatter([x], [y], color=col, s=130, marker="D", zorder=6,
                        edgecolor=SURFACE, lw=1.2)
-            ax.annotate(f"chess-GPT ({name}) {y:.0%}", (x, y), xytext=(0, dy),
-                        textcoords="offset points", fontsize=8, ha="center", color=INK)
+            dx, dy, ha = lab_off[name]
+            ax.annotate(f"chess-GPT ({name}) {y:.0%}", (x, y), xytext=(dx, dy),
+                        textcoords="offset points", fontsize=8, ha=ha, color=INK)
 
     ax.axhspan(0.42, 0.47, color=C["aqua"], alpha=0.08)
     ax.set_xlabel("playing strength (Elo, measured vs Stockfish rungs)")

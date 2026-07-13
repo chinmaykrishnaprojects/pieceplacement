@@ -400,3 +400,22 @@ Two clean results:
 - The lichess chess-GPT's agreement rises with player strength
   (37% u1400 → 51% at 2200+), the same monotonic trend Maia and Stockfish show:
   strong humans are more predictable to any good model.
+
+### Playing strength (measured on-server, argmax policy, no search)
+
+The chess-GPT ladder (self-play vs SF rungs) reveals a **strength–humanness
+tradeoff inside one architecture**:
+
+| chess-GPT variant | Playing Elo | Human top-1 |
+|---|---|---|
+| lichess-trained | ~1212 | 42.5% (most human) |
+| stockfish-trained | ~1407 | 34.3% (least human) |
+
+Training on Stockfish games makes the *same* 50M net ~195 Elo **stronger** but
+markedly **less human** — it lands near Stockfish's own human-match level (34%)
+at a similar strength. Training on human games does the reverse. You cannot get
+both from the data alone: human-likeness and raw strength pull apart, which is
+exactly why Maia fixes an Elo band per network rather than maximizing strength.
+For reference, real Maia3 plays ~1308/1327/1375 (5M/23M/79M) by the same
+measurement — all clustered at club level regardless of size, because Maia is
+trained to *match* ~1500 humans, not to be strong.
