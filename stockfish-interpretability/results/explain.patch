@@ -1,0 +1,71 @@
+--- stockfish-16/src/search.h	2023-06-29 06:00:10.000000000 +0000
++++ sf-explain/src/search.h	2026-07-12 23:59:31.027693409 +0000
+@@ -77,6 +77,7 @@
+   int selDepth = 0;
+   int tbRank = 0;
+   Value tbScore;
++  uint64_t effort = 0;
+   std::vector<Move> pv;
+ };
+ 
+--- stockfish-16/src/search.cpp	2023-06-29 06:00:10.000000000 +0000
++++ sf-explain/src/search.cpp	2026-07-13 00:01:28.679992193 +0000
+@@ -247,6 +247,31 @@
+   if (bestThread != this)
+       sync_cout << UCI::pv(bestThread->rootPos, bestThread->completedDepth) << sync_endl;
+ 
++  if (Options["Explain"])
++  {
++      // MCTS-style report from alpha-beta: share of search effort (subtree
++      // nodes) each root candidate received, with its last known score.
++      uint64_t total = 0;
++      for (const RootMove& rm : bestThread->rootMoves)
++          total += rm.effort;
++      auto sorted = bestThread->rootMoves;
++      std::stable_sort(sorted.begin(), sorted.end(),
++                       [](const RootMove& a, const RootMove& b) { return a.effort > b.effort; });
++      int shown = 0;
++      for (const RootMove& rm : sorted)
++      {
++          if (total == 0 || rm.effort * 100 < total || shown >= 5)
++              break;
++          Value v = rm.score == -VALUE_INFINITE ? rm.previousScore : rm.score;
++          sync_cout << "info string candidate " << UCI::move(rm.pv[0], rootPos.is_chess960())
++                    << " effort " << rm.effort * 100 / total << "%";
++          if (v != -VALUE_INFINITE)
++              std::cout << " score cp " << v;
++          std::cout << sync_endl;
++          ++shown;
++      }
++  }
++
+   sync_cout << "bestmove " << UCI::move(bestThread->rootMoves[0].pv[0], rootPos.is_chess960());
+ 
+   if (bestThread->rootMoves[0].pv.size() > 1 || bestThread->rootMoves[0].extract_ponder_from_tt(rootPos))
+@@ -1134,6 +1159,7 @@
+                                                                 [to_sq(move)];
+ 
+       // Step 16. Make the move
++      uint64_t nodesBeforeMove = rootNode ? uint64_t(thisThread->nodes) : 0;
+       pos.do_move(move, st, givesCheck);
+ 
+       // Decrease reduction if position is or has been on the PV
+@@ -1258,6 +1284,8 @@
+           RootMove& rm = *std::find(thisThread->rootMoves.begin(),
+                                     thisThread->rootMoves.end(), move);
+ 
++          rm.effort += uint64_t(thisThread->nodes) - nodesBeforeMove;
++
+           rm.averageScore = rm.averageScore != -VALUE_INFINITE ? (2 * value + rm.averageScore) / 3 : value;
+ 
+           // PV move or new best move?
+--- stockfish-16/src/ucioption.cpp	2023-06-29 06:00:10.000000000 +0000
++++ sf-explain/src/ucioption.cpp	2026-07-12 23:59:31.028321294 +0000
+@@ -66,6 +66,7 @@
+   o["Clear Hash"]            << Option(on_clear_hash);
+   o["Ponder"]                << Option(false);
+   o["MultiPV"]               << Option(1, 1, 500);
++  o["Explain"]               << Option(false);
+   o["Skill Level"]           << Option(20, 0, 20);
+   o["Move Overhead"]         << Option(10, 0, 5000);
+   o["Slow Mover"]            << Option(100, 10, 1000);

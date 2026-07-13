@@ -144,6 +144,23 @@ def chart_ladder(elo, mat_elo, anchor):
                    label="material-only αβ (fully interpretable)")
         ax.annotate(f"{mat_elo + anchor:.0f}", (32, mat_elo + anchor - 130),
                     ha="center", fontsize=8.5, color=INK2)
+    # interpretable no-/low-search engines at the 32-node abscissa
+    try:
+        import pandas as _pd, math as _m
+        rr = _pd.read_csv("results/ruleset_results.csv", dtype={"low": str, "high": str})
+        def _elo(s, n):
+            s = min(max(s, 0.5 / n), 1 - 0.5 / n); return -400 * _m.log10(1 / s - 1)
+        base = {"32": elo[32] + anchor, "64": elo[64] + anchor}
+        for name, col, lab, dx in [
+            ("RULESET", C["aqua"], "rule-set αβ (piece values + PST principles)", 1.25),
+            ("EVALONLY", C["violet"], "SF NNUE as pure policy (depth 1, no search)", 0.8)]:
+            est = [base[hi] + _elo(rr[(rr.low == name) & (rr.high == hi)].score_low.mean(),
+                   len(rr[(rr.low == name) & (rr.high == hi)])) for hi in ("32", "64")]
+            e = sum(est) / 2
+            ax.scatter([32 * dx], [e], color=col, s=70, zorder=4, label=lab)
+            ax.annotate(f"{e:.0f}", (32 * dx, e + 50), ha="center", fontsize=8, color=INK2)
+    except FileNotFoundError:
+        pass
     ax.set_xscale("log", base=2)
     ax.set_xlabel("nodes per move (log₂)")
     ax.set_ylabel(f"Elo (anchored: 65 536 nodes ≈ {anchor})")
@@ -248,3 +265,90 @@ def chart_multipv():
 
 
 chart_multipv()
+
+
+def sf_win_permille(v_norm, ply=64):
+    v = v_norm * 328 / 100.0
+    m = min(240, ply) / 64.0
+    a_s = [0.38036525, -2.82015070, 23.17882135, 307.36768407]
+    b_s = [-2.29434733, 13.27689788, -14.26828904, 63.45318330]
+    a = ((a_s[0]*m+a_s[1])*m+a_s[2])*m+a_s[3]
+    b = ((b_s[0]*m+b_s[1])*m+b_s[2])*m+b_s[3]
+    x = np.clip(v, -4000, 4000)
+    return 1000/(1+np.exp((a-x)/b))
+
+
+def chart_engine_vs_human():
+    """Stockfish's own engine WDL model vs the human-fit curve."""
+    fig, ax = plt.subplots(figsize=(7.2, 4.6))
+    xs = np.linspace(-6, 6, 400)
+    # human expected score + human win prob (from fits)
+    k, b0 = A["eval_to_score"]["k_cp"], A["eval_to_score"]["bias_cp"]
+    kw, bw = W["win_k"], W["win_bias"]
+    ax.plot(xs, expit((xs*100+bw)/kw), color=C["orange"], lw=2,
+            label="human P(win)  (lichess ~1200-2200)")
+    # SF engine win prob + expected score
+    sfw = np.array([sf_win_permille(x*100)/1000 for x in xs])
+    sfl = np.array([sf_win_permille(-x*100)/1000 for x in xs])
+    sfscore = sfw + 0.5*(1-sfw-sfl)
+    ax.plot(xs, sfw, color=C["blue"], lw=2,
+            label="Stockfish P(win)  (engine LTC self-play)")
+    ax.plot(xs, sfscore, color=C["blue"], lw=2, ls="--",
+            label="Stockfish expected score")
+    ax.axhline(0.5, color="#c9c8c3", lw=1)
+    ax.axvline(1.0, color="#c9c8c3", lw=1, ls=":")
+    ax.annotate("at +1.00 (SF's calibration point):\nSF 50% win but 75% expected score;\nhuman only ~52% win (they draw less,\nbut small edges rarely decide)",
+                (1.0, 0.5), xytext=(1.5, 0.24), fontsize=8.5, color=INK2,
+                arrowprops=dict(arrowstyle="-", color=INK2, lw=0.8))
+    ax.set_xlabel("normalized eval (pawns)")
+    ax.set_ylabel("probability / expected score")
+    ax.set_title("Engine vs human: the same eval means different things")
+    ax.legend(frameon=False, loc="upper left", fontsize=8.5)
+    ax.set_xlim(-6, 6); ax.set_ylim(0, 1)
+    fig.tight_layout(); fig.savefig("results/chart_engine_vs_human.png"); plt.close(fig)
+
+
+chart_engine_vs_human()
+
+
+def chart_humanlike():
+    import json as _j
+    H = _j.load(open("results/humanlike.json"))
+    levels = [32, 256, 4096, 65536]
+    elo_map = {32: 1468, 256: 1561, 4096: 2439, 65536: 3100}
+    fig, axes = plt.subplots(1, 2, figsize=(10, 4.3))
+    ax = axes[0]
+    x = [elo_map[l] for l in levels]
+    top1 = [H[f"top1_match_{l}"] for l in levels]
+    top3 = [H[f"in_top3_{l}"] for l in levels]
+    ax.plot(x, top1, color=C["blue"], lw=2, marker="o", ms=7, markeredgecolor=SURFACE,
+            label="SF top-1 == human move")
+    ax.plot(x, top3, color=C["aqua"], lw=2, marker="s", ms=7, markeredgecolor=SURFACE,
+            label="human move in SF top-3")
+    for xi, y in zip(x, top1):
+        ax.annotate(f"{y:.0%}", (xi, y + 0.02), ha="center", fontsize=8.5, color=INK2)
+    ax.axhspan(0.46, 0.52, color=C["orange"], alpha=0.12)
+    ax.annotate("Maia / chess-LLM\nreported ~46-52%", (2000, 0.49),
+                fontsize=8, color=C["orange"], ha="center")
+    ax.set_xlabel("Stockfish strength (Elo, by node budget)")
+    ax.set_ylabel("agreement with the human move")
+    ax.set_title("How human-like is Stockfish?\nMove-match peaks at ~1560, falls as it gets stronger")
+    ax.legend(frameon=False, loc="center right", fontsize=8.5)
+    ax.set_ylim(0, 0.8)
+
+    ax = axes[1]
+    bands = ["u1400", "1400-1800", "1800-2200", "2200+"]
+    blab = ["<1400", "1400-1800", "1800-2200", "2200+"]
+    for l, col, mk in [(256, C["blue"], "o"), (65536, C["red"], "s")]:
+        ys = [H["by_band"][b][f"top1_{l}"] for b in bands]
+        ax.plot(blab, ys, color=col, lw=2, marker=mk, ms=7, markeredgecolor=SURFACE,
+                label=f"SF @ {l} nodes ({elo_map[l]} Elo)")
+    ax.set_xlabel("human player's rating band")
+    ax.set_ylabel("SF top-1 == human move")
+    ax.set_title("Stronger humans play more\nStockfish-like moves")
+    ax.legend(frameon=False, loc="upper left", fontsize=8.5)
+    ax.set_ylim(0.15, 0.5)
+    fig.tight_layout(); fig.savefig("results/chart_humanlike.png"); plt.close(fig)
+
+
+chart_humanlike()

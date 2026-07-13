@@ -23,9 +23,17 @@ database dump. **No files outside this folder are read or touched.**
 | `scripts/node_ladder.py` | Self-play ladder: SF16 at fixed node budgets (32→65,536) plus a material-only αβ engine; measures Elo per node |
 | `scripts/multipv_cost.py` | Measures the Elo price of interpretability: SF forced to resolve k candidate lines (MultiPV=k) vs normal SF at the same node budget |
 | `scripts/explain_move.py` | **Prototype interpretable Stockfish**: emits Gemini-prompt-style JSON (candidate lines in SAN, win-probability via the fitted curve, rule-based English rationale) at ~10 ms/move |
+| `scripts/extract_fens.py` | Samples quiet positions with FEN + the human move actually played (for human-likeness + eval decomposition) |
+| `scripts/ruleset_ladder.py` | Places two interpretable no-/low-search engines (a page-of-principles rule-set αβ, and SF's NNUE as pure depth-1 policy) on the node ladder |
+| `scripts/humanlike.py` | How often SF (per node budget) plays the human move; by rating band; human centipawn-loss |
+| `scripts/eval_decompose.py` | Regresses SF16's opaque NNUE eval onto its own classical human-readable terms (R²≈0.74) |
+| `scripts/coach.py` | Human coach layer: diffs SF16's classical eval terms before/after the engine's move to explain *why* in plain language |
+| `scripts/sprt.py` | Fishtest-style GSPRT match harness (pentanomial, log-likelihood bounds) |
+| `src/` (built) | Stockfish 16 from Ubuntu source; `sf-explain` = `Explain` UCI patch (`results/explain.patch`), bench-identical; `sf-nonull` = a known-regression control |
 | `scripts/make_charts.py` | Renders all charts in `results/` |
-| `data/positions.csv.gz` | 783k positions from 12k evaluated games (2024-01 dump) |
-| `results/` | Fitted parameters (JSON), match results (CSV), charts (PNG) |
+| `data/positions.csv.gz`, `data/fen_moves.csv.gz` | 783k material/eval positions; 38k FEN + human-move records (2024-01 dump) |
+| `results/` | Fitted parameters (JSON), match results (CSV), charts (PNG), `explain.patch` |
+| `PONYTAIL_NOTE.md` | The ponytail YAGNI ladder (fetched from the web) and how it was applied here |
 
 ## Findings
 
@@ -190,3 +198,154 @@ cost of always resolving 3 lines?") answered at small scale.
   universal constant.
 - Reference points for LLM/Maia/Leela strength and cost are literature
   estimates, marked as such.
+
+## Part 2: building Stockfish from source + the fishtest loop
+
+GitHub is blocked in this environment, but Ubuntu's archive isn't:
+`apt-get source stockfish` yields the full Stockfish 16 C++ tree (NNUE net
+included). `make profile-build ARCH=x86-64-avx2` reproduces the official
+**bench signature 2593605** — the same signature fishtest uses to verify a
+submitted patch compiles to the intended search.
+
+### The C++ patch: `results/explain.patch` (UCI option `Explain`)
+
+MultiPV buys candidate lines by *splitting the search* (−215 Elo for 3 lines,
+measured above). But alpha-beta already spends real effort on refuted root
+moves — it just throws that information away. The patch adds per-root-move
+**effort accounting** (subtree nodes attributed to each root candidate, ~10
+lines in `search.cpp`/`search.h`) and prints an MCTS-style distribution at
+bestmove time:
+
+```
+info string candidate e1b1 effort 76% score cp 43
+info string candidate f3h5 effort 15% score cp -32001→(hidden when unknown)
+bestmove e1b1
+```
+
+In forced positions the distribution collapses (99% on one move — the human
+"only move" signal); in rich positions it spreads over 3–5 candidates. This
+is the user-hypothesized "search with a probability distribution over
+candidate moves, like a human", extracted from stock alpha-beta.
+
+**Cost: provably zero.** The patched binary's bench signature is identical
+(2593605) — in fishtest terms a verified no-functional-change patch. The
+interpretability was free all along; MultiPV was the wrong price to pay.
+
+### SPRT harness: `scripts/sprt.py`
+
+Implements the fishtest acceptance test at small scale: game pairs with
+color-swapped balanced openings, pentanomial pair statistics, GSPRT
+log-likelihood ratio for H0: elo=elo0 vs H1: elo=elo1, stopping bounds
+±log(19) (α=β=0.05). Two demonstration runs (8192 nodes/move):
+
+- **Known regression** (null-move pruning disabled; bench 3284598):
+  SPRT [0, 5] — see `results/sprt_nonull.csv`.
+- **Explain patch** vs base: SPRT [−10, 0] non-regression bounds — see
+  `results/sprt_explain.csv`.
+
+A real Stockfish 19 submission would run the same loop at fishtest scale
+(tens of thousands of games, STC then LTC, elo bounds like [0, 2]); the
+machinery here is the same shape, scaled to one 4-core box.
+
+## Part 3: making the eval genuinely useful to a human
+
+### The scope of "modify Stockfish": version archaeology
+
+`apt-get source` gives SF16, and that turns out to be the **ideal** version for
+interpretability work — not a limitation. Stockfish removed its classical,
+hand-crafted evaluation in PR #4674 (right after SF16), for a whole-engine
+strength cost of only ~2 Elo. For the *engine* the hand-crafted terms were dead
+weight; for a *human* they are the entire vocabulary. SF16 is the last release
+that still ships both: it plays with NNUE but `eval` still prints the classical
+term table (Material, Imbalance, Pawns, per-piece, Mobility, King safety,
+Threats, Passed, Space, Winnable). So the interpretability layer here rides on
+official Stockfish code that exists in exactly one release.
+
+### How much of the black box is legible? (`results/eval_decompose.json`)
+
+Regressing SF16's opaque **NNUE eval** onto its own classical human-readable
+terms over ~2500 positions:
+
+- **R² ≈ 0.74** (n = 2500) — about three-quarters of the NNUE number is
+  reconstructible from concepts a coach already uses.
+- Material + imbalance alone give R² ≈ 0.66; the positional terms add ~7
+  points, led (incremental R² over material) by **King safety, Passed pawns,
+  and Mobility** — i.e. NNUE's "secret sauce" over material is mostly those
+  three legible ideas, not something ineffable. (Positional terms alone,
+  ignoring material, explain only R² ≈ 0.18 — material is still the backbone.)
+
+The ~26% that classical terms miss is the genuine NNUE edge (subtle
+piece-coordination / long-range king-safety patterns) — a quantified ceiling on
+how far hand-crafted interpretability can go.
+
+### Two shipping interpretability tools
+
+1. **`Explain` UCI patch** (`results/explain.patch`, Part 2): per-root-move
+   search effort as an MCTS-style candidate distribution. **Bench-identical, 0
+   Elo.**
+2. **`scripts/coach.py`**: a human coach layer. It plays the engine's move, then
+   diffs SF16's classical term table before/after to say *why* in plain terms.
+   Built as a thin wrapper over the stock `eval` command (ponytail rung 1: the
+   term table already exists — don't reimplement it in C++). Examples:
+
+   ```
+   c5:  advances/creates a passed pawn (+0.39).            [K+P endgame]
+   a3:  improves king safety (+0.28); creates threats      [Italian]
+        (+0.15); gains mobility (+0.14).
+   ```
+
+   This is faithful (the terms shown are Stockfish's own), unlike an LLM's
+   post-hoc story, and costs one extra `eval` call (~1 ms).
+
+### Placing the interpretable engines on the ladder (`chart_ladder.png`)
+
+Both no-/low-search interpretable players were measured against the 32- and
+64-node SF rungs (40 games each):
+
+| Engine | Elo | Interpretability |
+|---|---|---|
+| material-only αβ | ~1009 | total (one number, addable by hand) |
+| **rule-set αβ** (Huber piece values + Michniewski PST principles) | **~1324** | total (fits on a page) |
+| **SF NNUE as pure policy** (depth 1, no search) | **~1336** | low (opaque net, one ply) |
+| SF16 @ 32 nodes | ~1468 | medium |
+
+The punchline for the frontier: a **fully human-readable rule set (1324) is
+within ~12 Elo of Stockfish's own neural net used without search (1336).**
+Stockfish's NNUE is trained to be a *search heuristic*, not a standalone
+player — so stripping its search throws away almost everything, landing it next
+to a page of principles. This is the exact opposite of Leela, whose net is a
+policy+value net that reaches ~2500 with no search: the "2500 with no search"
+regime the user asked about is a Leela/AlphaZero property, not reachable by
+removing search from Stockfish. Filling that part of the frontier requires a
+Leela-style *value* net, not SF's search-oriented one.
+
+## Part 4: quantifying "less human-like" (`chart_humanlike.png`)
+
+The chess-LLM / Maia selling point is that they *predict human moves*, not best
+moves. We measured the Stockfish baseline they must beat: over 3,500 quiet
+lichess positions with the human move known, how often does SF (at several node
+budgets) play the same move?
+
+- **SF move-match with humans is non-monotonic and peaks at ~256 nodes / ~1560
+  Elo (35% top-1, 68% top-3), then FALLS as SF gets stronger** (65k nodes:
+  29% / 57%). A weak-but-searching engine is not maximally human; there's a
+  sweet spot around club level, and super-GM Stockfish is *less* human-like
+  than 1560-Elo Stockfish.
+- **None of the SF settings reach the ~46–52% top-1 that Maia / a dedicated
+  chess-LLM report** — that gap is exactly the value those human-imitation
+  models add, and it is real: matching human moves is a different objective
+  than playing well, and Stockfish optimizes the wrong one.
+- **Stronger humans play more Stockfish-like moves** monotonically (24% → 45%
+  top-1 at 256 nodes across <1400 → 2200+ bands). "Playing like the engine" is
+  almost a definition of chess strength — which is why an engine is a poor
+  model of a *weak* human specifically.
+- Mean centipawn-loss of the human move rises with the yardstick's depth (83cp
+  at 32 nodes → 109cp at 65k): deeper search finds refutations that make human
+  moves look worse, i.e. "how far from optimal are humans" is itself
+  depth-dependent.
+
+Takeaway for the frontier: to be *both* strong and human-like you need a model
+trained on human games (Maia, chess-LLM), not a de-tuned engine. Stockfish buys
+strength by becoming less human; the interpretability tools in Parts 2–3 are
+therefore about explaining engine choices in human terms, not about making the
+engine choose human moves — two different goals this data cleanly separates.
