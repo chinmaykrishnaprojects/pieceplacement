@@ -17,7 +17,7 @@ import time
 import chess
 import requests
 
-MODEL = os.environ.get("GEMINI_MODEL", "gemini-3-flash-preview")
+MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.1-flash-lite")
 URL = f"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent"
 KEY = os.environ.get("GEMINI_API_KEY", "")
 MIN_INTERVAL = float(os.environ.get("GEMINI_MIN_INTERVAL", "1.5"))  # s between calls

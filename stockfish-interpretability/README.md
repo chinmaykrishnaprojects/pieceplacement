@@ -419,3 +419,63 @@ exactly why Maia fixes an Elo band per network rather than maximizing strength.
 For reference, real Maia3 plays ~1308/1327/1375 (5M/23M/79M) by the same
 measurement — all clustered at club level regardless of size, because Maia is
 trained to *match* ~1500 humans, not to be strong.
+
+## Part 6: chess2vec — a learned position-embedding space over lichess
+
+Word2vec's principle (a token is known by the company it keeps) applied to chess:
+a *position* is known by the positions that follow it in real games. A shared
+board encoder `f(board)->R^256` is trained skip-gram style (InfoNCE): pull a
+position toward the position 6 plies later in the same game, push away from
+random positions. The encoder is color-agnostic (board oriented to the
+side-to-move's POV) and generalizes to any FEN. `scripts/chess2vec*.py`,
+`chart_chess2vec.png`. Trained on 60k lichess position-pairs, CPU, ~2 min.
+
+**The space is legible (linear probes on the frozen 256-d embedding):**
+
+| Concept | Probe acc | Baseline |
+|---|---|---|
+| game phase (opening/middle/end) | **94%** | 75% |
+| open vs closed structure | **93%** | 50% |
+| who is ahead (side-to-move) | **66%** | 37% |
+| material amount (R²) | 0.37 | — |
+
+Trained purely on "what follows," the embedding linearly encodes phase, pawn
+structure, and advantage — and a supervised 2-D projection shows a clean
+opening→middlegame→endgame manifold. This is the same "concepts are linearly
+decodable" story as the board-state probe, but on a from-scratch space.
+
+**Nearest-neighbour = similar positions across all of lichess.** Cosine-NN in
+the embedding returns strategically similar positions, not just piece-overlap
+matches: an Italian query returns Giuoco-Piano structures; a castled-kingside
+attack query returns near-identical attacking middlegames (cos 0.91); a rook
+endgame returns other rook endgames. This is the "find the most similar
+position over the whole database" tool.
+
+**embedding→FEN is approximately invertible.** A decoder `g(emb)->board`
+reconstructs **99.0% of squares** correctly — but only ~0.1% of boards are
+bit-exact. So 256 dims is a *lossy* board compressor (≈7 squares off per board):
+enough to identify the position type and answer concept queries, not enough for
+exact recovery — the honest answer to "is embedding→FEN possible?" (yes,
+approximately, like sentence-reconstruction embeddings). Exact recovery would
+need a wider bottleneck or a stronger decoder (a GPU item in `GPU_RUNBOOK.md`).
+
+## Part 7: cheap models measured, and the small-LLM verbalizer glue
+
+- **Gemini as an engine (measured):** `gemini-3.1-flash-lite` (free tier, thinking
+  off for ~2s/move) matches the human move **28.4%** of the time over 148 lichess
+  positions — *below* Stockfish's 35% and far below the chess models' ~44%. A
+  cheap general LLM is a poor human-move predictor; the specialized 50M models
+  dominate it on both cost and human-likeness. (Free tier caps ~a few thousand
+  calls/day on the 3.1 models; the 2.x/`3-flash-preview` models are quota-locked.)
+- **Verbalizer glue (`scripts/verbalizer.py`, MiniCPM5-1B on CPU):** turns an
+  engine EVIDENCE bundle (candidate effort %, eval-term deltas from `coach.py`,
+  probe readout) into English commentary. It is *faithful by construction* — the
+  LLM never chooses the move or invents an eval, it only restates machine facts —
+  which is the structural advantage over Gemini (which picks a move then
+  rationalizes, possibly lying). ~1000× cheaper than a frontier call.
+- **BPE on PGN (`scripts/bpe_compress.py`):** char→BPE gives **1.72×** token
+  compression, i.e. ~1.7× cheaper inference / longer context for a retrained
+  model (a GPU item).
+- **GPU handoff:** `GPU_HANDOFF_PROMPT.md` is a self-contained prompt to paste
+  into a GPU-enabled Claude session — it runs the LoRA-on-Stockfish fine-tune and
+  scores it with this repo's evals, to extend the strength↔humanness curve.

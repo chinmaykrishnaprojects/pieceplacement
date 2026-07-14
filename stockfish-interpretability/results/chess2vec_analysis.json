@@ -1,0 +1,84 @@
+{
+  "n": 60000,
+  "dim": 256,
+  "nearest_neighbors": {
+    "italian": [
+      {
+        "fen": "rnb1k2r/pppp1ppp/5n2/2b5/1q2P3/2NP4/PPP1QPPP/R1B1KB1R b KQkq - 6 8",
+        "cos": 0.7011677026748657
+      },
+      {
+        "fen": "r1bq1rk1/pppp1ppp/2n2n2/2b1p1N1/2B1P3/2N2Q2/PPPP1PPP/R1B1K2R b KQ - 13 8",
+        "cos": 0.6732603907585144
+      },
+      {
+        "fen": "rnb1k2r/pppp1pp1/1q6/2b1p2P/4P3/2NP1N2/PPP1QPP1/R1B1KB1R b KQkq - 0 8",
+        "cos": 0.6427769660949707
+      },
+      {
+        "fen": "rnbqk2r/p4ppp/2pp4/1pb1p3/4P3/1B3N2/PPPP1PPP/R1BQK2R b KQkq - 1 8",
+        "cos": 0.6341158151626587
+      },
+      {
+        "fen": "r1b2rk1/ppppbpp1/5q1p/4p2Q/2B1P3/2PP4/PP1N1PPP/R4RK1 w - - 4 12",
+        "cos": 0.6317356824874878
+      }
+    ],
+    "kingside_attack": [
+      {
+        "fen": "r2q1rk1/ppp2ppp/2np1n2/2bNp3/2B1P1b1/3PBN2/PPP2PPP/R2Q1RK1 b - - 5 8",
+        "cos": 0.9144845008850098
+      },
+      {
+        "fen": "r1bq1rk1/ppp2ppp/2np4/2b1p1N1/2B1P1n1/2NPB3/PPP2PPP/R2Q1RK1 b - - 6 8",
+        "cos": 0.908281683921814
+      },
+      {
+        "fen": "r1bq1rk1/ppp2ppp/2np4/2bNp3/4P3/3P1N2/PPP2PPP/R1BQ1RK1 b - - 0 8",
+        "cos": 0.8820594549179077
+      },
+      {
+        "fen": "r1bq1rk1/ppp2pp1/2np1n1p/2b1p3/2B1P3/2NPBN2/PPP1QPPP/R4RK1 b - - 1 8",
+        "cos": 0.8394007682800293
+      },
+      {
+        "fen": "r1bq1rk1/1pp2ppp/2np1n2/p1bNp3/2B1P3/P2P1N2/1PP2PPP/R1BQ1RK1 b - - 1 8",
+        "cos": 0.8336135745048523
+      }
+    ],
+    "rook_endgame": [
+      {
+        "fen": "8/R4pkp/6p1/8/7P/6P1/p4PK1/r7 b - - 1 43",
+        "cos": 0.8434851169586182
+      },
+      {
+        "fen": "1r6/5pk1/6p1/2R4p/5P1P/6P1/5PK1/8 b - - 2 43",
+        "cos": 0.8433956503868103
+      },
+      {
+        "fen": "8/R4pk1/6p1/7p/7P/4P1P1/R4P1K/5q2 w - - 5 47",
+        "cos": 0.8393756151199341
+      },
+      {
+        "fen": "8/5p2/5kp1/7p/5P1P/2R3P1/2p2PK1/2r5 w - - 2 47",
+        "cos": 0.7813642024993896
+      },
+      {
+        "fen": "8/5p2/5kp1/7p/7P/6P1/5K2/8 w - - 1 47",
+        "cos": 0.7800374031066895
+      }
+    ]
+  },
+  "concept_probes": {
+    "phase_acc": 0.94,
+    "phase_baseline": 0.751,
+    "who_ahead_acc": 0.6578333333333334,
+    "who_ahead_baseline": 0.37366666666666665,
+    "material_r2": 0.3674240708351135,
+    "open_closed_acc": 0.931
+  },
+  "embedding_to_fen": {
+    "per_square_acc": 0.9896076388888889,
+    "exact_board_rate": 0.001
+  }
+}

@@ -21,7 +21,7 @@ import sys
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-MODEL_DIR = "models/qwen2.5-0.5b-instruct"
+MODEL_DIR = "models/minicpm5-1b"
 
 SYSTEM = (
     "You are a chess commentator. You will be given MACHINE-VERIFIED FACTS about "
@@ -34,18 +34,22 @@ SYSTEM = (
 
 class Verbalizer:
     def __init__(self, model_dir=MODEL_DIR):
-        self.tok = AutoTokenizer.from_pretrained(model_dir)
+        self.tok = AutoTokenizer.from_pretrained(model_dir, trust_remote_code=True)
         self.model = AutoModelForCausalLM.from_pretrained(
-            model_dir, torch_dtype=torch.float32)
+            model_dir, torch_dtype=torch.float32, trust_remote_code=True)
         self.model.eval()
 
     def verbalize(self, evidence: dict, max_new_tokens=140):
         facts = self._format_evidence(evidence)
-        msgs = [{"role": "system", "content": SYSTEM},
-                {"role": "user", "content": "FACTS:\n" + facts +
-                 "\n\nWrite the commentary."}]
-        text = self.tok.apply_chat_template(msgs, tokenize=False,
-                                            add_generation_prompt=True)
+        user = SYSTEM + "\n\nFACTS:\n" + facts + "\n\nWrite the commentary."
+        # Prefer the tokenizer's own chat template; fall back to MiniCPM's
+        # native <用户>...<AI> format (its tokenizer ships no HF template).
+        try:
+            text = self.tok.apply_chat_template(
+                [{"role": "user", "content": user}],
+                tokenize=False, add_generation_prompt=True)
+        except Exception:
+            text = f"<用户>{user}<AI>"
         inp = self.tok(text, return_tensors="pt")
         with torch.no_grad():
             out = self.model.generate(**inp, max_new_tokens=max_new_tokens,

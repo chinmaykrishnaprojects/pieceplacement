@@ -1,9 +1,14 @@
 {
-  "model": "gemini-3-flash-preview",
-  "n": 12,
-  "top1": 0.4166666666666667,
-  "by_band_top1": {},
-  "api_calls": 20,
+  "model": "gemini-3.1-flash-lite",
+  "n": 148,
+  "top1": 0.28378378378378377,
+  "by_band_top1": {
+    "1400-1800": 0.2127659574468085,
+    "1800-2200": 0.3617021276595745,
+    "2200+": 0.32142857142857145,
+    "u1400": 0.23076923076923078
+  },
+  "api_calls": 211,
   "records": [
     {
       "fen": "8/8/3rpk2/1p2n1p1/p1p1B3/2P3KP/PP2RP2/8 b - - 8 40",
@@ -14,8 +19,8 @@
     {
       "fen": "6k1/6bp/p1q2pp1/1p6/2p2PbB/P7/BPPrNQP1/4R2K b - - 5 26",
       "human": "c6e4",
-      "gemini": "c6e8",
-      "hit": 0
+      "gemini": "c6e4",
+      "hit": 1
     },
     {
       "fen": "4r2k/pppR2b1/7p/8/4N2P/2P1nB2/PP4P1/2K4R w - - 5 30",
@@ -26,7 +31,7 @@
     {
       "fen": "8/1p1k2pp/5p2/pP6/6P1/P3Pb1P/1B3P2/6K1 b - - 0 26",
       "human": "f3e2",
-      "gemini": "b7b6",
+      "gemini": "d7e6",
       "hit": 0
     },
     {
@@ -38,7 +43,7 @@
     {
       "fen": "2r3k1/1pp3p1/p1n3p1/8/PbN2B2/4P2P/6P1/2R3K1 w - - 0 26",
       "human": "c1b1",
-      "gemini": "f4e5",
+      "gemini": "f4c7",
       "hit": 0
     },
     {
@@ -50,8 +55,8 @@
     {
       "fen": "r1b1kbnr/pppp1ppp/2n5/4Pq2/8/2P2NP1/PP2PP1P/RN1QKB1R w KQkq - 1 7",
       "human": "b1d2",
-      "gemini": "b1d2",
-      "hit": 1
+      "gemini": "f3h4",
+      "hit": 0
     },
     {
       "fen": "8/6p1/7r/2p1p1k1/1p2Pp2/1PNP1P2/2P2KPr/6R1 w - - 0 44",
@@ -68,13 +73,829 @@
     {
       "fen": "5r2/pp3p2/8/3p1k1P/4p3/2P1R3/PP4K1/8 b - - 0 37",
       "human": "f8h8",
-      "gemini": "f8h8",
-      "hit": 1
+      "gemini": "f5g5",
+      "hit": 0
     },
     {
       "fen": "r1bqk2r/2pnn1b1/pp1p3p/3P1p2/2P1pP2/2NBB1NP/PP1Q2P1/R3K2R w KQkq - 0 14",
       "human": "d3e2",
       "gemini": "d3e2",
+      "hit": 1
+    },
+    {
+      "fen": "6k1/p3bpp1/2B1pn1p/5b2/8/3r1N1P/PP3PPB/R5K1 w - - 0 25",
+      "human": "f3e5",
+      "gemini": "c6e8",
+      "hit": 0
+    },
+    {
+      "fen": "r4rk1/1p3ppp/p1npb1q1/4p3/4P3/2N2N1P/PPP1BPP1/R2QR1K1 w - - 3 14",
+      "human": "g1h1",
+      "gemini": "d1d6",
+      "hit": 0
+    },
+    {
+      "fen": "8/8/p2p4/2pPp1k1/4P2p/P4P2/4K1B1/1b6 b - - 0 46",
+      "human": "g5f4",
+      "gemini": "b1a2",
+      "hit": 0
+    },
+    {
+      "fen": "8/8/3k4/1K6/8/4q3/8/8 w - - 18 59",
+      "human": "b5c4",
+      "gemini": "b5a6",
+      "hit": 0
+    },
+    {
+      "fen": "rq3rk1/3nbppp/3ppn2/8/3NP3/1PN5/PB3PPP/R2Q1RK1 w - - 3 14",
+      "human": "d1e2",
+      "gemini": "d4f5",
+      "hit": 0
+    },
+    {
+      "fen": "8/5Q2/8/2p5/p1P1Q3/P5k1/1P6/1K6 w - - 3 52",
+      "human": "f7f3",
+      "gemini": "f7f3",
+      "hit": 1
+    },
+    {
+      "fen": "3Rn3/8/p2p2k1/1ppP4/8/2P1n2P/PP4PN/6K1 b - - 1 35",
+      "human": "g6f7",
+      "gemini": "e8f6",
+      "hit": 0
+    },
+    {
+      "fen": "3rkbnr/pp6/2p2p1p/6p1/8/1PN1P3/P3BPPP/R1B2RK1 b k - 0 14",
+      "human": "f8g7",
+      "gemini": "f8b4",
+      "hit": 0
+    },
+    {
+      "fen": "k7/p2r4/3P2p1/K1R4p/5BbP/6P1/8/8 b - - 5 48",
+      "human": "a8b7",
+      "gemini": "d7d8",
+      "hit": 0
+    },
+    {
+      "fen": "6k1/p5pp/n2Bp1p1/1p1pPr2/3P4/P1P2PR1/4R2P/7K b - - 0 29",
+      "human": "h7h5",
+      "gemini": "f5f3",
+      "hit": 0
+    },
+    {
+      "fen": "8/8/2p1r3/1p1pN3/p2P1k2/P1P5/1P1K4/8 w - - 19 66",
+      "human": "e5d3",
+      "gemini": "d2d3",
+      "hit": 0
+    },
+    {
+      "fen": "2bqk2r/1pppn1pp/4pn2/1P3p2/N2P4/P4N2/1P2PPPP/R1B1KB1R w KQk - 1 11",
+      "human": "c1f4",
+      "gemini": "b5b6",
+      "hit": 0
+    },
+    {
+      "fen": "rnb1k2r/ppp1qp2/3p2pb/4p2p/2B1P1n1/3PBN2/PPPNQPPP/R4RK1 w kq - 4 9",
+      "human": "h2h3",
+      "gemini": "e3h6",
+      "hit": 0
+    },
+    {
+      "fen": "r3k2r/3pb3/pp2p3/2p4p/2P1q1p1/4B2P/PP3P1K/R5R1 w kq - 0 25",
+      "human": "e3g5",
+      "gemini": "h3g4",
+      "hit": 0
+    },
+    {
+      "fen": "2r1k2r/Qpq2ppp/2n1pn2/1B1pNb2/1b1P4/2N1P3/PP3PPP/R1B2RK1 b k - 2 11",
+      "human": "e8g8",
+      "gemini": "e8g8",
+      "hit": 1
+    },
+    {
+      "fen": "r2q1rk1/1pp1ppbp/2n3p1/p7/3P4/P3PB2/1P1Q1PPP/R1B2RK1 w - - 1 15",
+      "human": "d4d5",
+      "gemini": "b2b4",
+      "hit": 0
+    },
+    {
+      "fen": "rnbqk2r/pp3ppp/4p3/2bpP3/8/2PB4/P1P2PPP/R1BQK1NR w KQkq - 0 8",
+      "human": "g1f3",
+      "gemini": "d1g4",
+      "hit": 0
+    },
+    {
+      "fen": "r4rk1/1pp3p1/3pb1qp/p3p3/2PnP1PP/P1QB1P2/1P1N4/2K2R1R w - - 0 19",
+      "human": "f3f4",
+      "gemini": "c1b1",
+      "hit": 0
+    },
+    {
+      "fen": "2q1N3/4kp2/6P1/3Pp1P1/3n4/bP1B4/P1r5/QK4RR b - - 0 37",
+      "human": "d4f3",
+      "gemini": "c2b2",
+      "hit": 0
+    },
+    {
+      "fen": "r2qkb1r/1pp3pp/p1n2p2/3p1b2/8/1P2PN2/PBPP1PPP/RN1QK2R w KQkq - 0 9",
+      "human": "d2d4",
+      "gemini": "d2d4",
+      "hit": 1
+    },
+    {
+      "fen": "r3k2r/pp1n1ppp/2pqpn2/8/6b1/P1NP1NP1/1P2PPBP/R2Q1RK1 w kq - 1 12",
+      "human": "a1c1",
+      "gemini": "h2h3",
+      "hit": 0
+    },
+    {
+      "fen": "rn3rk1/pp2ppbp/2pp1np1/q4bB1/2PP4/2N1PN1P/PPQ2PP1/R3KB1R w KQ - 3 9",
+      "human": "f1d3",
+      "gemini": "c2d1",
+      "hit": 0
+    },
+    {
+      "fen": "r4rk1/pp2bppp/8/3pp3/6P1/P2P3P/RPP2P2/2B1K2R w K - 0 17",
+      "human": "f2f4",
+      "gemini": "c1d2",
+      "hit": 0
+    },
+    {
+      "fen": "8/4kb2/2p4R/2P2p2/4pP1P/P7/5P2/6K1 w - - 1 43",
+      "human": "g1h2",
+      "gemini": "h6h7",
+      "hit": 0
+    },
+    {
+      "fen": "r1b2rk1/ppqnppbp/2pp1np1/8/2BP1B2/2P1PN1P/PP1N1PP1/R2QK2R w KQ - 4 9",
+      "human": "c4b3",
+      "gemini": "e1g1",
+      "hit": 0
+    },
+    {
+      "fen": "r2qkb1r/1p1bnppp/p1n1p3/3pP3/3P4/2NB1N2/PP3PPP/R1BQK2R w KQkq - 5 9",
+      "human": "e1g1",
+      "gemini": "a2a3",
+      "hit": 0
+    },
+    {
+      "fen": "r2q1rk1/1p3p1p/p1nbpnp1/3p4/2PN1P2/1P1P1N2/PB4PP/R2Q1RK1 b - - 1 13",
+      "human": "f6h5",
+      "gemini": "d5c4",
+      "hit": 0
+    },
+    {
+      "fen": "rn1q1rk1/1b2bp2/p1p1p1pp/1p2P1N1/P1pPN2P/3nBB2/1P3PP1/RQ3RK1 w - - 0 17",
+      "human": "g5h3",
+      "gemini": "g5h3",
+      "hit": 1
+    },
+    {
+      "fen": "r2r1nk1/p3q1pp/2p2b2/3p1N2/3P2B1/1PP3BP/P2Q2P1/5RK1 b - - 6 27",
+      "human": "e7b7",
+      "gemini": "e7e6",
+      "hit": 0
+    },
+    {
+      "fen": "2k5/ppp2ppp/4p1b1/4n3/4P2P/2N1N3/PPP1B3/3K4 b - - 0 20",
+      "human": "c7c6",
+      "gemini": "c8d7",
+      "hit": 0
+    },
+    {
+      "fen": "r4r2/1q1pppkp/1p4p1/p7/6n1/2P3P1/PPN1PP1P/R1Q2RK1 w - - 0 20",
+      "human": "c1f4",
+      "gemini": "f2f3",
+      "hit": 0
+    },
+    {
+      "fen": "rnb1kb1r/ppp1qppp/5n2/3p4/3P4/1N1QBP2/PPP1P1PP/RN2KB1R b KQkq - 0 7",
+      "human": "b8c6",
+      "gemini": "f6h5",
+      "hit": 0
+    },
+    {
+      "fen": "r3r1k1/1p3ppp/1qn3n1/p1b1P3/2Pp4/P4BBP/1P1N1PP1/R2QR1K1 w - - 11 16",
+      "human": "d2e4",
+      "gemini": "b2b4",
+      "hit": 0
+    },
+    {
+      "fen": "r3r1k1/1b1p1ppp/1p2p3/p2qP3/1B1P4/5N2/1P3PPP/2RQ1RK1 w - - 0 19",
+      "human": "b4c3",
+      "gemini": "b4d6",
+      "hit": 0
+    },
+    {
+      "fen": "rn1qkb1r/pp3ppp/2p1pn2/3p3b/3P4/3BPN1P/PPP2PP1/RNBQ1RK1 w kq - 1 7",
+      "human": "d3e2",
+      "gemini": "c2c4",
+      "hit": 0
+    },
+    {
+      "fen": "3r1rk1/2pnqppp/p1Qb4/4p3/4P3/2PPBP2/PP3P1P/RN2R1K1 b - - 2 13",
+      "human": "f7f5",
+      "gemini": "f7f5",
+      "hit": 1
+    },
+    {
+      "fen": "6r1/R4p2/4pk1p/1p6/2bPPP2/2P5/3K3P/8 w - - 1 34",
+      "human": "d2e3",
+      "gemini": "e4e5",
+      "hit": 0
+    },
+    {
+      "fen": "r2qkb1r/pp2nppp/2n1p3/3pP3/3N4/2PQ4/PP3PPP/RNB2RK1 w kq - 1 10",
+      "human": "c1f4",
+      "gemini": "f2f4",
+      "hit": 0
+    },
+    {
+      "fen": "7R/8/2k5/8/4n3/1r4P1/4K2P/8 w - - 0 47",
+      "human": "h8h6",
+      "gemini": "h8e8",
+      "hit": 0
+    },
+    {
+      "fen": "r1bq2k1/ppp3pp/4pr2/3p4/P1nP4/2P1P1P1/2P3BP/R1BQR1K1 w - - 0 16",
+      "human": "c1a3",
+      "gemini": "e3e4",
+      "hit": 0
+    },
+    {
+      "fen": "r2qkb1r/pp3ppp/2n1p3/1BppPn2/3P2b1/2P1BN2/PP3PPP/RN1Q1RK1 w kq - 4 9",
+      "human": "e3g5",
+      "gemini": "d4c5",
+      "hit": 0
+    },
+    {
+      "fen": "rnb3nr/ppp1bk2/4p1p1/8/3Q1BP1/8/PPP2P1P/RN2K2R b KQ - 2 11",
+      "human": "e7f6",
+      "gemini": "g8f6",
+      "hit": 0
+    },
+    {
+      "fen": "1r2r3/1qp3kp/p1b1ppp1/1pPn3P/1P6/P3P3/2QBBPP1/3RR1K1 w - - 1 25",
+      "human": "e3e4",
+      "gemini": "e2f3",
+      "hit": 0
+    },
+    {
+      "fen": "r1bq1rk1/1p3pbp/2pp1np1/p1n1p3/2P1P3/P1NP1NP1/1P3PBP/1RBQ1RK1 w - - 1 11",
+      "human": "b2b4",
+      "gemini": "b2b4",
+      "hit": 1
+    },
+    {
+      "fen": "6k1/1R6/Q5p1/5bK1/2P1r3/5P2/1P3P2/2R5 w - - 3 41",
+      "human": "a6a8",
+      "gemini": "f3e4",
+      "hit": 0
+    },
+    {
+      "fen": "2kr2r1/2pp4/pp2pqnp/7Q/7N/1B4P1/P1PK1P1P/7R w - - 1 24",
+      "human": "h4f3",
+      "gemini": "h5h6",
+      "hit": 0
+    },
+    {
+      "fen": "r1bqk2r/p1pp1ppp/2p2n2/8/1b2P3/2N5/PPP2PPP/R1BQKB1R w KQkq - 0 7",
+      "human": "f1d3",
+      "gemini": "e4e5",
+      "hit": 0
+    },
+    {
+      "fen": "8/5ppk/2q1p2p/Q3P3/1pP4P/4NPP1/1p4K1/8 w - - 0 46",
+      "human": "a5a2",
+      "gemini": "a5b4",
+      "hit": 0
+    },
+    {
+      "fen": "5r2/5pkp/3p1bp1/p1pB2P1/4P3/2P2Q1P/5P2/qN3RK1 b - - 0 23",
+      "human": "f6e5",
+      "gemini": "f6g5",
+      "hit": 0
+    },
+    {
+      "fen": "5k2/5ppp/8/p4P2/1p1r4/2n4P/1KP2P2/5R2 b - - 2 38",
+      "human": "a5a4",
+      "gemini": "d4f4",
+      "hit": 0
+    },
+    {
+      "fen": "r7/1kp2r2/pp6/3P1p2/1PP2R1p/P6P/6P1/R5K1 w - - 0 29",
+      "human": "a1f1",
+      "gemini": "a1f1",
+      "hit": 1
+    },
+    {
+      "fen": "6k1/5R2/8/3p3p/3Pb1pN/4P1P1/4r2P/6K1 w - - 5 39",
+      "human": "f7f2",
+      "gemini": "f7f2",
+      "hit": 1
+    },
+    {
+      "fen": "rn2k1nr/pp3ppp/2p5/q1b1P3/6b1/1BN2N2/PPPP2PP/R1BQK2R b KQkq - 0 9",
+      "human": "b8d7",
+      "gemini": "g8h6",
+      "hit": 0
+    },
+    {
+      "fen": "4r1k1/1pq3pp/r7/p1pPpp2/2Pn4/1PQ3PP/P4PB1/3RR1K1 w - - 2 23",
+      "human": "a2a3",
+      "gemini": "d5d6",
+      "hit": 0
+    },
+    {
+      "fen": "1r1q4/4nbk1/B2p2p1/3Pp1Pr/4Pp2/P1NQ1P2/6R1/R5K1 b - - 0 28",
+      "human": "d8b6",
+      "gemini": "b8b6",
+      "hit": 0
+    },
+    {
+      "fen": "r1b1rk2/5ppp/ppN5/2n5/PP6/5N2/5PPP/R2R2K1 b - - 0 20",
+      "human": "c5e4",
+      "gemini": "c5b7",
+      "hit": 0
+    },
+    {
+      "fen": "r1bqk2r/ppp3pp/5p2/3np3/1bBnN3/2Q5/PPPP1PPP/RNB1K2R w KQkq - 4 9",
+      "human": "c3d3",
+      "gemini": "c3d3",
+      "hit": 1
+    },
+    {
+      "fen": "rnbqkb1r/pp4pp/2p2n2/3p1p2/3P4/2NB1N2/PPP2PPP/R1BQK2R w KQkq - 2 7",
+      "human": "e1g1",
+      "gemini": "e1g1",
+      "hit": 1
+    },
+    {
+      "fen": "2kr1b1r/pppq1pp1/3p1n2/4n3/4P1p1/2NBQ3/PPP2PPN/R1B2RK1 w - - 4 12",
+      "human": "c3d5",
+      "gemini": "f2f4",
+      "hit": 0
+    },
+    {
+      "fen": "r2q1rk1/5ppp/2pb1nn1/pp1p3b/3P4/1PN1PN2/PBP1BQP1/2KR3R b - - 1 14",
+      "human": "a5a4",
+      "gemini": "h5f3",
+      "hit": 0
+    },
+    {
+      "fen": "5rk1/pr1q2b1/2p1pp1p/2Pp2p1/2nP4/5N1P/PP1B1PP1/1R1QR1K1 w - - 1 22",
+      "human": "b2b3",
+      "gemini": "b2b3",
+      "hit": 1
+    },
+    {
+      "fen": "5rrk/p1R2Qpp/4p3/4N3/1P6/qnB4P/5PPK/4R3 w - - 5 27",
+      "human": "f7e7",
+      "gemini": "f7h5",
+      "hit": 0
+    },
+    {
+      "fen": "rn2kb1r/pp3pp1/2p1p2p/q7/4B3/2P1BQ2/PP3PPP/R4RK1 b kq - 1 13",
+      "human": "f8c5",
+      "gemini": "f8e7",
+      "hit": 0
+    },
+    {
+      "fen": "8/8/7p/6p1/1PR5/R2n2k1/P2r4/5K2 b - - 4 51",
+      "human": "d2f2",
+      "gemini": "d2f2",
+      "hit": 1
+    },
+    {
+      "fen": "r2q1bk1/1pp2pp1/5n1p/nP2rb2/2Pp4/P2P1PP1/1BQNP1BP/4R1K1 w - - 1 19",
+      "human": "g3g4",
+      "gemini": "e2e4",
+      "hit": 0
+    },
+    {
+      "fen": "r2qkb1r/ppp1np1p/3p1p2/3Pp3/4P1b1/2N2N2/PPP2PPP/R2QKB1R w KQkq - 0 8",
+      "human": "h2h3",
+      "gemini": "h2h3",
+      "hit": 1
+    },
+    {
+      "fen": "8/4B3/7r/8/pp4K1/1k6/8/R7 w - - 0 45",
+      "human": "a1b1",
+      "gemini": "e7g5",
+      "hit": 0
+    },
+    {
+      "fen": "r5k1/5p2/7p/2PpQ3/1p6/4P1PK/4q2P/8 b - - 2 34",
+      "human": "a8a2",
+      "gemini": "e2f1",
+      "hit": 0
+    },
+    {
+      "fen": "rnbqk2r/1pp1bp2/p3pn2/6B1/2BPP3/2N5/PP3PPP/R2QK2R w KQkq - 0 11",
+      "human": "d1f3",
+      "gemini": "e4e5",
+      "hit": 0
+    },
+    {
+      "fen": "rn1qkb1r/pp1b1ppp/4pn2/3p4/3P4/3BPN2/PP3PPP/RNBQK2R w KQkq - 2 7",
+      "human": "e1g1",
+      "gemini": "e1g1",
+      "hit": 1
+    },
+    {
+      "fen": "rnbqkbnr/4pppp/3p4/1pp5/p3PP2/PB1P4/1PP3PP/RNBQK1NR w KQkq - 0 7",
+      "human": "b3a2",
+      "gemini": "b3a2",
+      "hit": 1
+    },
+    {
+      "fen": "rn1qr1k1/pp3ppp/2p1bb2/8/3P4/P3BN2/1PQ1BPPP/3RK2R w K - 2 15",
+      "human": "e1g1",
+      "gemini": "e1g1",
+      "hit": 1
+    },
+    {
+      "fen": "r1b1k2N/pp2b2p/n7/2Pp2p1/4n3/1PP1B2P/P3BPP1/RN2R1K1 w q - 1 17",
+      "human": "c3c4",
+      "gemini": "b3b4",
+      "hit": 0
+    },
+    {
+      "fen": "r1b2rk1/2qnbppp/4p3/p1p1P3/N1Pp1P2/1P1B4/P3Q1PP/R1B2R1K w - - 0 16",
+      "human": "a4b2",
+      "gemini": "c1d2",
+      "hit": 0
+    },
+    {
+      "fen": "r2qr1k1/p4pp1/b1p1pn1p/2B5/1p1P4/5NQ1/P2R1PPP/4R1K1 w - - 0 22",
+      "human": "e1e5",
+      "gemini": "g3f4",
+      "hit": 0
+    },
+    {
+      "fen": "8/p7/8/1Q4p1/4k3/8/P1P2KPP/8 w - - 1 33",
+      "human": "c2c4",
+      "gemini": "b5d3",
+      "hit": 0
+    },
+    {
+      "fen": "r1r5/1p2kp1p/2npb3/pB6/1n2P3/B4P2/5KPP/1R4NR b - - 1 21",
+      "human": "c8c7",
+      "gemini": "c6d4",
+      "hit": 0
+    },
+    {
+      "fen": "4k2r/3rbpp1/pBR1p2p/4P2P/Np3P2/8/PP2N2P/5RK1 b - - 0 30",
+      "human": "e7d8",
+      "gemini": "d7d8",
+      "hit": 0
+    },
+    {
+      "fen": "r1bqkbnr/1p2pppp/p2p4/2p5/4P3/2N2N2/PPPP1PPP/R1BQK2R w KQkq - 0 7",
+      "human": "d2d4",
+      "gemini": "d2d4",
+      "hit": 1
+    },
+    {
+      "fen": "r2q1rk1/pp1b1pbp/4p1p1/1NppPn2/5P2/2P1P3/PP2B1PP/R1BQ1RK1 w - - 5 12",
+      "human": "b5d6",
+      "gemini": "a2a4",
+      "hit": 0
+    },
+    {
+      "fen": "1k1r4/p1p4r/2p1Q1Np/8/3p4/2N5/PPP2PPP/R4RK1 w - - 2 22",
+      "human": "c3e4",
+      "gemini": "c3a4",
+      "hit": 0
+    },
+    {
+      "fen": "3Q1n2/5r1k/P4Pq1/8/2pP4/2P1B3/1P4P1/5RK1 b - - 0 39",
+      "human": "f8d7",
+      "gemini": "g6g3",
+      "hit": 0
+    },
+    {
+      "fen": "N1b2k1r/1pB1q1p1/p1np1b2/4p1p1/2B1Pn2/1N6/PPP2P2/R2QK1R1 b Q - 2 19",
+      "human": "d6d5",
+      "gemini": "e7c7",
+      "hit": 0
+    },
+    {
+      "fen": "r3kb1r/ppq2ppp/2pp1n2/5P2/6P1/2p2K2/PPP2P1P/R1B3R1 w kq - 0 16",
+      "human": "g4g5",
+      "gemini": "b2c3",
+      "hit": 0
+    },
+    {
+      "fen": "2r3k1/2p2ppp/4p3/3pb3/1R6/8/2P1KPPP/8 w - - 0 26",
+      "human": "e2e3",
+      "gemini": "f2f4",
+      "hit": 0
+    },
+    {
+      "fen": "5r2/p5kp/1p3r1p/3P1p2/5Q2/5RP1/P1P4P/6K1 w - - 1 31",
+      "human": "d5d6",
+      "gemini": "d5d6",
+      "hit": 1
+    },
+    {
+      "fen": "8/5ppp/4p3/3k4/pPn5/P4P2/2N1K1PP/8 w - - 1 34",
+      "human": "e2d3",
+      "gemini": "e2d3",
+      "hit": 1
+    },
+    {
+      "fen": "r2qkb1r/pp1bpppp/2np1n2/8/3PP3/4BN2/PP3PPP/RN1QKB1R w KQkq - 3 7",
+      "human": "f1d3",
+      "gemini": "b1c3",
+      "hit": 0
+    },
+    {
+      "fen": "r1b1k2r/pp1p1p1q/2p3p1/b3PP1p/3PB3/P7/1PP3PP/R2Q1RK1 w kq - 0 18",
+      "human": "e5e6",
+      "gemini": "f5g6",
+      "hit": 0
+    },
+    {
+      "fen": "7k/5R1P/8/8/2p1p2P/2n2p2/8/2K5 b - - 3 55",
+      "human": "c3e2",
+      "gemini": "c3e2",
+      "hit": 1
+    },
+    {
+      "fen": "r2q1r2/pb1p1pk1/2p1pbpp/8/2B1P3/2N2QP1/PPP2P1P/R4RK1 w - - 1 14",
+      "human": "h2h4",
+      "gemini": "a1d1",
+      "hit": 0
+    },
+    {
+      "fen": "8/5ppp/2k5/1p1R4/1P3KP1/7r/8/8 w - - 10 43",
+      "human": "d5c5",
+      "gemini": "d5c5",
+      "hit": 1
+    },
+    {
+      "fen": "1r3r1k/p5p1/5p1p/q7/P2P4/2P2QP1/7P/3R2RK w - - 1 34",
+      "human": "h2h4",
+      "gemini": "c3c4",
+      "hit": 0
+    },
+    {
+      "fen": "r3k2r/3nb1pp/bqp2n2/pp4N1/3P4/P1N5/1PP2PPP/R1BQR1K1 w - - 2 15",
+      "human": "d1e2",
+      "gemini": "d4d5",
+      "hit": 0
+    },
+    {
+      "fen": "r2qkb1r/ppp4p/5p2/3pn3/6Q1/4P1P1/PPP2PP1/RN2KB1R w KQkq - 0 12",
+      "human": "g4h5",
+      "gemini": "g4e6",
+      "hit": 0
+    },
+    {
+      "fen": "N5k1/p2p1rpp/8/1p6/1B1p4/3P4/PPP3KP/R7 b - - 0 23",
+      "human": "f7f6",
+      "gemini": "f7f2",
+      "hit": 0
+    },
+    {
+      "fen": "b7/3q2kp/pN3pp1/4p3/3r4/1P2RP1P/P3Q1PK/8 b - - 6 36",
+      "human": "d7b7",
+      "gemini": "d7c6",
+      "hit": 0
+    },
+    {
+      "fen": "r3r3/1p3pkp/p5p1/2P5/1PpN1P2/2PbP2P/1P3KP1/R6R w - - 0 22",
+      "human": "h1e1",
+      "gemini": "h1d1",
+      "hit": 0
+    },
+    {
+      "fen": "rnb1k1nr/1p1p1ppp/4p3/8/3NPP2/2N5/PpP3PP/1R2KB1R b Kkq - 0 11",
+      "human": "b8c6",
+      "gemini": "g8f6",
+      "hit": 0
+    },
+    {
+      "fen": "r1b2Rnk/p6p/1p4p1/3P4/1q6/8/P1P3PP/4RQ1K w - - 2 29",
+      "human": "f1f6",
+      "gemini": "f1f7",
+      "hit": 0
+    },
+    {
+      "fen": "3q1rk1/1b3ppp/1n2p3/1P1p4/2p4P/2P2N2/2Q2PP1/4KB1R b K - 0 17",
+      "human": "d8f6",
+      "gemini": "d8f6",
+      "hit": 1
+    },
+    {
+      "fen": "8/5k2/4p2p/4P1p1/p1pPK3/2P5/P5PP/8 b - - 0 36",
+      "human": "f7g6",
+      "gemini": "g5g4",
+      "hit": 0
+    },
+    {
+      "fen": "2r1k2r/pp1bnppp/2n1p3/1B1pP3/P2P4/5N2/2PK1PPP/R1B4R w k - 3 13",
+      "human": "c1a3",
+      "gemini": "b5c6",
+      "hit": 0
+    },
+    {
+      "fen": "r2qkb1r/ppp2pp1/2n2p1p/3p4/3P2b1/2P2NP1/PP2PP1P/RN1QKB1R w KQkq - 1 7",
+      "human": "f1g2",
+      "gemini": "f1g2",
+      "hit": 1
+    },
+    {
+      "fen": "8/1b2rk2/2p1prp1/3pR2p/1P1P1P1P/2R3PB/8/6K1 w - - 1 35",
+      "human": "h3f1",
+      "gemini": "c3c5",
+      "hit": 0
+    },
+    {
+      "fen": "q7/5k2/5p2/5p1p/1p1p1PpP/1P1P2P1/2P2Q1K/8 b - - 17 47",
+      "human": "a8d5",
+      "gemini": "a8a2",
+      "hit": 0
+    },
+    {
+      "fen": "r2q1rk1/pb2npbp/1p4p1/3pP3/5P2/2NQ1B2/PP4PP/R1B2RK1 w - - 5 16",
+      "human": "f1d1",
+      "gemini": "d3d1",
+      "hit": 0
+    },
+    {
+      "fen": "8/8/1p6/p7/1k6/3K4/8/8 w - - 0 59",
+      "human": "d3c2",
+      "gemini": "d3c2",
+      "hit": 1
+    },
+    {
+      "fen": "r4rk1/2q1bppp/3pp3/p3n1P1/Bp1QP2P/4BP2/PPP5/1K1R3R w - - 1 19",
+      "human": "f3f4",
+      "gemini": "f3f4",
+      "hit": 1
+    },
+    {
+      "fen": "r2r2k1/p2Q1ppp/8/P1p1p3/4P3/4R3/3P3P/1N2K3 w - - 2 23",
+      "human": "d7g4",
+      "gemini": "d7d8",
+      "hit": 0
+    },
+    {
+      "fen": "6rr/ppp2pk1/3b1p2/5Q2/4p3/4R3/PPP2PPP/6K1 w - - 0 23",
+      "human": "e3g3",
+      "gemini": "f5g6",
+      "hit": 0
+    },
+    {
+      "fen": "6k1/p4ppp/1p6/3P4/8/P2N4/1Br3PP/5K2 b - - 2 27",
+      "human": "c2d2",
+      "gemini": "c2d2",
+      "hit": 1
+    },
+    {
+      "fen": "5rk1/ppp2nb1/6Q1/4p2p/3p2NP/3P4/PP4PK/R1Bq4 w - - 0 24",
+      "human": "g4h6",
+      "gemini": "g4f6",
+      "hit": 0
+    },
+    {
+      "fen": "r1b2rk1/1p1pqpbp/2p3p1/p2nP3/Pn1P4/1BB2N2/1P1N1PPP/R2Q1RK1 w - - 2 15",
+      "human": "d2e4",
+      "gemini": "d2e4",
+      "hit": 1
+    },
+    {
+      "fen": "1n6/1P1kbpr1/2p1pp2/7r/QPqP4/R4NP1/6PP/5RK1 w - - 7 30",
+      "human": "a4a8",
+      "gemini": "f1c1",
+      "hit": 0
+    },
+    {
+      "fen": "rnbqk2r/pp2ppbp/1n4p1/2pPP3/2P5/2N5/PP4PP/R1BQKBNR w KQkq - 2 9",
+      "human": "g1f3",
+      "gemini": "g1f3",
+      "hit": 1
+    },
+    {
+      "fen": "2r5/1kpR4/pppbpB2/8/3P4/2N3P1/PPP2PK1/4R3 b - - 2 27",
+      "human": "c8f8",
+      "gemini": "b6b5",
+      "hit": 0
+    },
+    {
+      "fen": "8/6pp/8/5p2/k7/6K1/8/8 b - - 1 44",
+      "human": "g7g5",
+      "gemini": "a4b3",
+      "hit": 0
+    },
+    {
+      "fen": "8/p1q2ppk/1p2p2p/1P1p4/P2P4/3pP3/5PPP/Q4K2 b - - 1 26",
+      "human": "c7c2",
+      "gemini": "c7c2",
+      "hit": 1
+    },
+    {
+      "fen": "8/2P5/3K2p1/7p/6kP/5p2/8/8 w - - 0 61",
+      "human": "c7c8q",
+      "gemini": "c7c8q",
+      "hit": 1
+    },
+    {
+      "fen": "3n1R2/2kb3r/4p3/3pPp1P/1p1p1N1K/pP1P1B2/P1P2P2/8 b - - 11 50",
+      "human": "d8f7",
+      "gemini": "d8f7",
+      "hit": 1
+    },
+    {
+      "fen": "1r3rk1/3n1ppp/1q2p3/p1ppPb2/P4B2/1NP2P1P/1P4PK/R2Q1R2 w - - 1 18",
+      "human": "b3d2",
+      "gemini": "b3c5",
+      "hit": 0
+    },
+    {
+      "fen": "r1bq1rk1/1ppp1pp1/1bn2n1p/p3p3/PPB1P3/2PP1N1P/5PP1/RNBQK2R w KQ - 0 9",
+      "human": "b4b5",
+      "gemini": "b4b5",
+      "hit": 1
+    },
+    {
+      "fen": "rn1qkbnr/pbpp1ppp/1p2p3/4N3/2BP4/8/PPP2P1P/RNBQK1R1 w Qkq - 2 7",
+      "human": "f2f4",
+      "gemini": "d4d5",
+      "hit": 0
+    },
+    {
+      "fen": "1r3r2/7k/p2p4/4p1Rp/2B1Pp2/1P5p/P1N1P2K/8 b - - 0 32",
+      "human": "f4f3",
+      "gemini": "b8b7",
+      "hit": 0
+    },
+    {
+      "fen": "r2q1rk1/1bn2pbp/2p1pnp1/3p4/1P1P4/P1N1P1P1/1B2NPBP/R2Q1RK1 b - - 2 14",
+      "human": "d8e7",
+      "gemini": "f6d7",
+      "hit": 0
+    },
+    {
+      "fen": "r2qr1k1/ppp2pbp/3p1np1/4n1B1/3NP1b1/2PB1N2/PP3PPP/R2Q1RK1 w - - 3 12",
+      "human": "h2h3",
+      "gemini": "h2h3",
+      "hit": 1
+    },
+    {
+      "fen": "r4k1r/p1p1q1b1/1p1p2pp/n7/Q2PnP2/2P5/PP4PP/RNB2RK1 w - - 0 16",
+      "human": "f1e1",
+      "gemini": "f4f5",
+      "hit": 0
+    },
+    {
+      "fen": "rnbqk2r/p4ppp/2p5/1p1pP1B1/3Q4/1Bn2N2/P1P2PPP/R3K2R b KQkq - 1 11",
+      "human": "d8a5",
+      "gemini": "d8a5",
+      "hit": 1
+    },
+    {
+      "fen": "rn1qk2r/pppbbppp/3p1n2/3P4/8/2N2NP1/PPP2PBP/R1BQ1RK1 b kq - 4 9",
+      "human": "e8g8",
+      "gemini": "e8g8",
+      "hit": 1
+    },
+    {
+      "fen": "8/2QR2n1/p5pk/7p/1PP5/8/5KP1/8 b - - 0 37",
+      "human": "h6g5",
+      "gemini": "h6g5",
+      "hit": 1
+    },
+    {
+      "fen": "R7/1p1n1pKp/2k1b1p1/2p4r/2P5/8/8/8 w - - 3 39",
+      "human": "a8c8",
+      "gemini": "a8e8",
+      "hit": 0
+    },
+    {
+      "fen": "2K5/2P5/2k5/8/8/R7/p7/r7 b - - 10 70",
+      "human": "a1h1",
+      "gemini": "c6b6",
+      "hit": 0
+    },
+    {
+      "fen": "rnb1kbnr/ppp1pppp/8/8/8/1P6/P1PP1PPP/3NKBNR b Kkq - 0 7",
+      "human": "b8c6",
+      "gemini": "e7e5",
+      "hit": 0
+    },
+    {
+      "fen": "r1bqk2r/pp2npbp/2n1p1p1/2p5/3pPP2/1BNP1N2/PPP3PP/R1BQ1RK1 w kq - 0 9",
+      "human": "c3e2",
+      "gemini": "c3e2",
+      "hit": 1
+    },
+    {
+      "fen": "8/3bkppp/pn2p3/1p1pP3/3N1P2/1P2K2P/P3B1P1/8 b - - 4 23",
+      "human": "f7f6",
+      "gemini": "f7f6",
       "hit": 1
     }
   ]
