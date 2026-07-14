@@ -1,0 +1,52 @@
+{
+  "player": "kingskreamer",
+  "games_analyzed": 60,
+  "moves_scored": 2664,
+  "blunder_rate_by_phase": {
+    "opening": 0.06735751295336788,
+    "middlegame": 0.22197922361946418,
+    "endgame": 0.12026726057906459
+  },
+  "moves_by_phase": {
+    "opening": 386,
+    "middlegame": 1829,
+    "endgame": 449
+  },
+  "worst_blunders": [
+    {
+      "cp_loss": 15100,
+      "fen": "5rk1/3K2pp/2pp2p1/1p2b3/1P2P3/8/8/5r2 b - - 3 34",
+      "move_no": 34,
+      "phase": "middlegame",
+      "similar_position": "8/6p1/2p1k3/2K4p/r7/8/8/8 b - - 1 50"
+    },
+    {
+      "cp_loss": 7059,
+      "fen": "7R/7P/8/6k1/8/8/5q2/7K w - - 2 44",
+      "move_no": 44,
+      "phase": "middlegame",
+      "similar_position": "7Q/8/8/6k1/8/8/8/6K1 w - - 1 61"
+    },
+    {
+      "cp_loss": 6026,
+      "fen": "k7/8/1Q6/8/8/8/4K3/6r1 b - - 40 71",
+      "move_no": 71,
+      "phase": "middlegame",
+      "similar_position": "8/1q6/4k3/8/3R4/2K5/8/8 w - - 26 75"
+    },
+    {
+      "cp_loss": 4011,
+      "fen": "7K/8/3R2q1/1k6/8/8/8/8 w - - 11 68",
+      "move_no": 68,
+      "phase": "middlegame",
+      "similar_position": "8/8/3k2K1/1R6/8/8/8/8 w - - 3 61"
+    },
+    {
+      "cp_loss": 3988,
+      "fen": "r2q4/pb2p3/1p2n3/5k2/3Q4/8/PpP3P1/RNB1KB1R b KQ - 1 25",
+      "move_no": 25,
+      "phase": "middlegame",
+      "similar_position": "rn1qrk1Q/pb2ppb1/1ppp2p1/6P1/8/4P3/PPPP1P2/RNB1K1NR b KQ - 5 15"
+    }
+  ]
+}

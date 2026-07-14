@@ -1,0 +1,21 @@
+{
+  "metric": "R^2 of linear human-feature model predicting the system's eval",
+  "features": [
+    "dP",
+    "dN",
+    "dB",
+    "dR",
+    "dQ",
+    "material_diff",
+    "total_material"
+  ],
+  "stockfish_nnue_I": 0.6153183867391853,
+  "material_only_I": 1.0,
+  "stockfish_nnue_I_classicalterms": 0.7353648590285471,
+  "chess2vec_concept_legibility": 0.8429444444444445,
+  "notes": {
+    "material_only": "I=1.0 by construction (fully human-legible) -> validates the metric",
+    "stockfish_nnue": "material-only features already explain most of the eval; adding classical positional terms raises legibility to ~0.74",
+    "LLM_gemini": "emits native English but faithfulness unverified (post-hoc); high surface-legibility, low guaranteed faithfulness -- a 2nd axis"
+  }
+}
