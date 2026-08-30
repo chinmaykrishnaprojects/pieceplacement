@@ -109,6 +109,19 @@ class PolicyOracle:
         self.quota = budget
         self.used_this_move = 0
 
+    def policy_with_acts(self, board, pgn_prefix="", layer=11):
+        """({move: prob}, {move: activation}) — SAME forward pass, SAME 1 unit.
+
+        The activations were already computed by the policy call; returning them
+        adds no model compute. Metered identically so no candidate can get extra
+        information for free.
+        """
+        if self.used_this_move >= self.quota:
+            raise BudgetExhausted(f"per-move budget {self.quota} exhausted")
+        self.used_this_move += 1
+        self.total_calls += 1
+        return self._gpt.policy_with_acts(board, pgn_prefix=pgn_prefix, layer=layer)
+
     def policy(self, board, pgn_prefix=""):
         """{move: prob} from the language model. Costs 1 unit of budget."""
         if self.used_this_move >= self.quota:
@@ -125,6 +138,11 @@ class PolicyOracle:
             self._cache.clear()
         self._cache[key] = dict(val)
         return val
+
+
+def load_book(path):
+    """Natural openings (UCI move lists) from make_book.py."""
+    return [list(m) for m in json.load(open(path))]
 
 
 def load_gpt(path="models/lichess_16layers.pt"):
@@ -212,7 +230,8 @@ def elo_from_score(s, n):
     return -400 * math.log10(1 / s - 1)
 
 
-def evaluate(cand_path, budget, games, rungs, seed, gpt=None, verbose=True):
+def evaluate(cand_path, budget, games, rungs, seed, gpt=None, verbose=True,
+             book=None):
     src = open(cand_path).read()
     hit = scan_source(src)
     if hit:
@@ -225,9 +244,17 @@ def evaluate(cand_path, budget, games, rungs, seed, gpt=None, verbose=True):
     gpt = gpt or load_gpt()
     oracle = PolicyOracle(gpt)
     engine = new_engine()
-    openings = make_openings(max(1, games // 2), seed, engine)
+    if book:
+        rng = random.Random(seed)
+        pool = list(book)
+        rng.shuffle(pool)
+        openings = pool[:max(1, games // 2)]
+    else:
+        openings = make_openings(max(1, games // 2), seed, engine)
 
-    out = {"candidate": cand_path, "budget": budget, "rungs": {}, "flags": {}}
+    out = {"candidate": cand_path, "budget": budget, "rungs": {}, "flags": {},
+           "openings": "natural" if book else "random8",
+           "model": getattr(gpt, "path", "?")}
     t0 = time.time()
     for rung in rungs:
         pts = 0.0
@@ -264,9 +291,13 @@ def main():
     ap.add_argument("--rungs", default="32")
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--out", default=None)
+    ap.add_argument("--model", default="models/lichess_16layers.pt")
+    ap.add_argument("--book", default=None)
     a = ap.parse_args()
     res = evaluate(a.candidate, a.budget, a.games,
-                   [int(x) for x in a.rungs.split(",")], a.seed)
+                   [int(x) for x in a.rungs.split(",")], a.seed,
+                   gpt=load_gpt(a.model),
+                   book=load_book(a.book) if a.book else None)
     print(json.dumps(res, indent=2))
     if a.out:
         with open(a.out, "a") as fh:

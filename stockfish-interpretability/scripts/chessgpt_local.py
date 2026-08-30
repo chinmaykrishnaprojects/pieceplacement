@@ -116,6 +116,7 @@ class ChessGPT:
     def __init__(self, path, device="cpu"):
         self.model = load_model(path, device)
         self.device = device
+        self.path = path
 
     @torch.no_grad()
     def _logprob_of(self, prefix_ids, continuation):
@@ -182,6 +183,66 @@ class ChessGPT:
         exp = {m: math.exp((v - mx) / max(temperature, 1e-6)) for m, v in scores.items()}
         s = sum(exp.values())
         return {m: v / s for m, v in exp.items()}
+
+    @torch.no_grad()
+    def policy_with_acts(self, board, pgn_prefix=None, layer=11):
+        """Policy AND per-move residual-stream activations, from ONE forward pass.
+
+        The batched forward already appends each legal move's SAN to the prefix,
+        so the hidden state at the LAST CHARACTER OF THE MOVE is a move-conditioned
+        representation the model has already computed. Reading it out is free:
+        no extra LM compute, just a slice of activations we were discarding.
+
+        Returns ({move: prob}, {move: np.ndarray[n_embd]}).
+        """
+        prefix = pgn_prefix if pgn_prefix is not None else board_to_pgn_prefix(board)
+        prefix_ids = [STOI[c] for c in prefix if c in STOI][-600:]
+        num = f"{board.fullmove_number}." if board.turn == chess.WHITE else ""
+        moves, conts = [], []
+        for mv in board.legal_moves:
+            cont = num + board.san(mv) + " "
+            if all(c in STOI for c in cont):
+                moves.append(mv)
+                conts.append(cont)
+        if not moves:
+            return {}, {}
+
+        P = len(prefix_ids)
+        seqs = [prefix_ids + [STOI[c] for c in c2] for c2 in conts]
+        maxlen = min(max(len(s) for s in seqs), self.model.block_size)
+        pad = STOI[" "]
+        batch = torch.full((len(seqs), maxlen), pad, dtype=torch.long,
+                           device=self.device)
+        for i, s in enumerate(seqs):
+            batch[i, :min(len(s), maxlen)] = torch.tensor(s[:maxlen])
+
+        grabbed = {}
+        blk = self.model.transformer.h[layer - 1]
+        h = blk.register_forward_hook(
+            lambda m, i, o: grabbed.__setitem__("a", o.detach()))
+        logits = self.model(batch)
+        h.remove()
+        acts = grabbed["a"]                       # [B, T, n_embd]
+        logp = F.log_softmax(logits, dim=-1)
+
+        totals, vecs = [], []
+        for i, cont in enumerate(conts):
+            t = 0.0
+            for j in range(len(cont)):
+                pos = P + j
+                if pos >= maxlen:
+                    break
+                t += logp[i, pos - 1, STOI[cont[j]]].item()
+            totals.append(t)
+            # last character OF THE MOVE (cont ends with the delimiter space)
+            last = min(P + len(cont) - 2, maxlen - 1)
+            vecs.append(acts[i, last].cpu().numpy())
+
+        mx = max(totals)
+        exp = [math.exp(v - mx) for v in totals]
+        ssum = sum(exp)
+        pol = {m: e / ssum for m, e in zip(moves, exp)}
+        return pol, {m: v for m, v in zip(moves, vecs)}
 
     def play(self, board, pgn_prefix=None, temperature=0.0):
         pol = self.policy(board, pgn_prefix=pgn_prefix,

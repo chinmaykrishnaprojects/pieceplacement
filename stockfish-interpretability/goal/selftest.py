@@ -34,6 +34,11 @@ class MockOracle:
         self.quota = budget
         self.used_this_move = 0
 
+    def policy_with_acts(self, board, pgn_prefix="", layer=11):
+        pol = self.policy(board, pgn_prefix)
+        acts = {m: [self.rng.gauss(0, 1) for _ in range(512)] for m in pol}
+        return pol, acts
+
     def policy(self, board, pgn_prefix=""):
         if self.used_this_move >= self.quota:
             raise BudgetExhausted(f"budget {self.quota} exhausted")

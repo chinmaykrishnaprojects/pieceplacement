@@ -204,3 +204,81 @@ or on deciding *when* the policy is about to blunder.
 4. Nobody tried: using the policy's probability as a *danger signal* (low
    top1 prob = the model is confused = likely blunder ahead) to trigger deeper
    free search rather than more LM calls.
+
+---
+
+# GEN-2: THE PROBE EXPERIMENT (does the model know it is blundering?)
+
+## Setup correction first
+Gen-1's baseline was broken: wrong checkpoint (lichess, not stockfish) and
+8 RANDOM opening plies, which puts a PGN language model far out of distribution
+while costing Stockfish nothing. Fixing it (stockfish ckpt + natural openings
+from real lichess games) was worth **+222 Elo on the baseline alone**
+(1193 -> 1415). Every gen-1 Elo number is inflated by that artifact.
+
+Honest baseline, pooled n=50, budget=1, vs SF@32:
+| system | score | Elo |
+|---|---|---|
+| app config (T=0.2, min_p=0.1) | .410 | 1405 |
+| + tactical filter (adaptive_budget) | .620 | 1553 (+148, 2.15 sigma) |
+
+T=0.2/min_p=0.1 measured IDENTICALLY to greedy argmax (.425 vs .425, n=20):
+min_p=0.1 keeps ~3 of 33 legal moves and T=0.2 puts ~75% of mass on rank 1.
+
+## The policy is already calibrated
+Blunder rate (loses >=150cp) by policy rank, n=4773 moves over 800 positions:
+
+| rank | 1 | 2 | 3 | 4 | 5 | 6 |
+|---|---|---|---|---|---|---|
+| blunder rate | **9.1%** | 14.9% | 21.9% | 26.0% | 30.1% | 32.6% |
+| mean cp lost | 98 | 133 | 178 | 187 | 233 | 241 |
+
+Monotone. The model expresses move quality in its probability ordering, and its
+top choice is wrong only 9.1% of the time.
+
+## The probe: linear readout of layer-11 residual stream
+Move-conditioned activations come FREE (the policy's batched forward pass
+already computes a hidden state per candidate move). Predicting "loses >=150cp":
+
+| signal | AUC |
+|---|---|
+| layer-11 linear probe | 0.661 |
+| **policy probability alone** | **0.686** |
+| combined | 0.718 |
+| probe, restricted to TOP-1 moves | 0.664 |
+| policy prob, restricted to TOP-1 | 0.632 |
+
+Overall the internals are WORSE than the output the model already gives you.
+Only on confident (top-1) moves does the probe edge out policy probability.
+
+## It does not convert to Elo
+`probe_filter` (1 LM call + 1 dot product, ZERO external chess knowledge):
+
+| system | external chess knowledge at inference | Elo (held-out, n=30) |
+|---|---|---|
+| app config | none | 1398 |
+| **LM + probe** | **none** | **1321 (-77, -0.8 sigma)** |
+| LM + tactical filter | a full hand-written evaluator | 1538 (+141) |
+
+No detectable gain; point estimate slightly negative. Caveat: the veto strength
+`_K=2.2` was never tuned, so a gentler probe would likely land at ~neutral
+rather than beating the baseline. AUC 0.66 cannot reliably catch a 9% event.
+
+## CONCLUSION
+
+**The model's confident blunders are a knowledge gap, not a readout failure.**
+The information is not linearly present at layer 11, so no inference-time
+interpretability trick recovers it. The +148 Elo from the tactical filter is
+external knowledge being SUPPLIED, not internal knowledge being decoded.
+
+Implication: to fix this while preserving "no search, human-like", the fix must
+go INTO THE WEIGHTS (distillation on the sharpened error set), not into the
+inference path. Reading the model's mind is not a route to strength here.
+
+## What would change this conclusion
+1. Other layers / nonlinear probes (only layer 11, only logistic, was tested).
+2. A probe trained on positions from games vs Stockfish rather than human games
+   (there is a distribution shift here).
+3. Karvonen showed board state is ~99% linearly decodable; "does THIS MOVE hang
+   material" is a different and evidently much harder target than "what is on
+   square e4".
