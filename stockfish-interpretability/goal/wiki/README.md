@@ -282,3 +282,58 @@ inference path. Reading the model's mind is not a route to strength here.
 3. Karvonen showed board state is ~99% linearly decodable; "does THIS MOVE hang
    material" is a different and evidently much harder target than "what is on
    square e4".
+
+---
+
+# GEN-3: EMBEDDING COMPARISON — LM internals vs purpose-built chess2vec
+
+Same 3000 positions, same labels, same linear probes. chess2vec (256-d) trained
+skip-gram on the same games; chess-LM = 512-d slice of the residual stream at
+the last PGN token (never trained to embed anything).
+
+| probe | chess2vec | chess-LM (L7) | trivial baseline | winner |
+|---|---|---|---|---|
+| who is ahead | 0.523 | **0.673** | 0.523 | LM |
+| material (R²) | −0.122 | **+0.211** | 0.0 | LM |
+| open vs closed | 0.908 | **0.915** | 0.500 | tie |
+| board reconstruction | **0.817** | 0.760 | 0.672 | chess2vec |
+| ~~phase~~ | ~~0.890~~ | ~~0.945~~ | **0.908** | DISCARD |
+
+**The phase probe is contaminated — drop it.** Move number ALONE predicts phase
+at 0.908, and the LM literally reads the move number as text in the PGN. Both
+"phase" scores are at or near that ceiling. My earlier claim that chess2vec
+"linearly encodes phase at 94%" was measuring a move counter, not chess.
+
+**chess2vec has NO who-is-ahead signal.** Its 0.523 is *exactly* the
+move-number-only baseline (0.523). Its material R² is NEGATIVE — worse than
+predicting the mean. The skip-gram objective ("which position follows this one")
+simply does not require material, so the 256-d bottleneck discards it, even
+though the encoder's INPUT is literally piece planes.
+
+**The LM wins on the semantic axes it was never trained for**, and loses only at
+board reconstruction — where chess2vec is fed the board directly, so this is
+close to an autoencoding task for it.
+
+## Where chess lives in the model
+Concepts peak MID-STACK (layers 7-10) and decay toward the output as the network
+commits to predicting the next character. Layer 16 is worse than layer 7 for
+every chess concept. (Note: gen-2's blunder probe used layer 11 partly because
+the app is named `l11`; the sweep says 7-10 is the better neighbourhood, so that
+probe deserves a re-run at layer 7-8.)
+
+## The finding that ties gen-2 and gen-3 together
+Material is the model's WEAKEST axis (R² 0.21 at best, negative in early layers)
+while positional structure is its strongest (0.92). A model that represents
+chess stylistically but not materially is precisely a model that plays sensible
+plans and hangs pieces — and cannot tell you it did. That is exactly what gen-2
+measured (probe AUC 0.66, no Elo gain) and exactly the gap the +148 Elo material
+filter was filling. Two independent experiments, one coherent story:
+
+**the chess-LM represents WHAT KIND of position this is, not WHO IS WINNING.**
+
+## Caveats
+1. chess2vec here trained on ~21k pairs vs 60k in an earlier run — somewhat
+   undertrained, so its numbers are a floor not a ceiling.
+2. Asymmetric information: the LM sees the whole game history, chess2vec sees
+   only the board. Better for the LM on anything history-dependent.
+3. Both are weak in absolute terms on material. Neither is a good evaluator.

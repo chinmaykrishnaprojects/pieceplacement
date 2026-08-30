@@ -14,6 +14,7 @@ import math
 import sys
 
 import chess
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -243,6 +244,28 @@ class ChessGPT:
         ssum = sum(exp)
         pol = {m: e / ssum for m, e in zip(moves, exp)}
         return pol, {m: v for m, v in zip(moves, vecs)}
+
+    @torch.no_grad()
+    def embed_position(self, pgn_prefix):
+        """Residual stream at the LAST prefix token, for EVERY layer.
+
+        This is the model's position representation at the moment it is about to
+        choose a move — the natural analogue of a chess2vec position embedding.
+        One forward pass yields all layers, so a layer sweep is nearly free.
+        Returns np.ndarray [n_layer, n_embd].
+        """
+        ids = [STOI[c] for c in pgn_prefix if c in STOI][-600:]
+        if not ids:
+            return None
+        x = torch.tensor([ids], device=self.device)
+        caps = []
+        hooks = [blk.register_forward_hook(
+            lambda m, i, o: caps.append(o[0, -1].detach().cpu().numpy()))
+            for blk in self.model.transformer.h]
+        self.model(x)
+        for h in hooks:
+            h.remove()
+        return np.stack(caps)
 
     def play(self, board, pgn_prefix=None, temperature=0.0):
         pol = self.policy(board, pgn_prefix=pgn_prefix,

@@ -1,0 +1,12 @@
+{
+  "name": "chess2vec",
+  "dim": 256,
+  "phase_acc": 0.89,
+  "phase_baseline": 0.67,
+  "who_ahead_acc": 0.5233333333333333,
+  "who_ahead_baseline": 0.435,
+  "material_r2": -0.12210357189178467,
+  "open_closed_acc": 0.9083333333333333,
+  "board_recon": 0.8165625,
+  "board_recon_baseline": 0.6717187499999999
+}
